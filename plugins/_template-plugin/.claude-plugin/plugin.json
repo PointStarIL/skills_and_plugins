@@ -1,0 +1,10 @@
+{
+  "name": "_template-plugin",
+  "description": "תיאור קצר של מה הפלאג-אין עושה ומתי להשתמש בו. החלף טקסט זה. ללא שדה version כדי שעדכון יתבצע לפי commit.",
+  "author": {
+    "name": "Chaim Marcus",
+    "email": "chaim@marcus-law.co.il"
+  },
+  "keywords": ["legal", "hebrew"],
+  "license": "Private"
+}
