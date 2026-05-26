@@ -13,16 +13,43 @@
       "source": "./plugins/appeal-decision-writer",
       "description": "מומחה להשלמה וניסוח של פסקאות בחלק דיון והכרעה של החלטות ועדת ערר לתכנון ובנייה. עיקרון מוחלט: ציטוטים ופסיקה רק מתוך מסמכי הטיוטה. איסור מוחלט על מקף ארוך.",
       "category": "legal",
-      "tags": ["legal", "hebrew", "appeals", "planning-and-building"],
-      "author": { "name": "Chaim Marcus", "email": "chaim@marcus-law.co.il" }
+      "tags": [
+        "legal",
+        "hebrew",
+        "appeals",
+        "planning-and-building"
+      ],
+      "author": {
+        "name": "Chaim Marcus",
+        "email": "chaim@marcus-law.co.il"
+      }
     },
     {
       "name": "appeal-claims-extractor",
       "source": "./plugins/appeal-claims-extractor",
       "description": "חילוץ שיטתי של טענות, עובדות, סעדים ואסמכתאות מכתבי בי-דין בעררי השבחה ורישוי. עיקרון מוחלט: רק מה שכתוב במפורש במסמך עצמו. איסור מוחלט על מקף ארוך.",
       "category": "legal",
-      "tags": ["legal", "hebrew", "appeals", "betterment-levy", "licensing"],
-      "author": { "name": "Chaim Marcus", "email": "chaim@marcus-law.co.il" }
+      "tags": [
+        "legal",
+        "hebrew",
+        "appeals",
+        "betterment-levy",
+        "licensing"
+      ],
+      "author": {
+        "name": "Chaim Marcus",
+        "email": "chaim@marcus-law.co.il"
+      }
+    },
+    {
+      "name": "test-auto-plugin",
+      "source": "./plugins/test-auto-plugin",
+      "description": "בדיקת מנגנון ה-upload האוטומטי. תמחק אחרי אימות.",
+      "category": "legal",
+      "author": {
+        "name": "Chaim Marcus",
+        "email": "chaim@marcus-law.co.il"
+      }
     }
   ]
 }

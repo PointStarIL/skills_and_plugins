@@ -1,0 +1,8 @@
+{
+  "name": "test-auto-plugin",
+  "version": "0.1.0",
+  "description": "בדיקת מנגנון ה-upload האוטומטי. תמחק אחרי אימות.",
+  "author": {"name": "Chaim Marcus", "email": "chaim@marcus-law.co.il"},
+  "keywords": ["test"],
+  "license": "Private"
+}
