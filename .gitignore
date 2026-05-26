@@ -11,3 +11,7 @@ __pycache__/
 .env
 .env.*
 *.log
+
+# upload folder — files are processed and deleted automatically, not committed
+upload/*
+!upload/.gitkeep
