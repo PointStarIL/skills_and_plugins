@@ -24,9 +24,9 @@ _FULL_CITE_RE = re.compile(
     + r',\s*[\d./]+\)'
 )
 _LAWMATE_CITE_RE = re.compile(
-    r'(?:עב"ל|ע"א|בג"ץ|ב"ל|ע"ע|תיק|בר"ע)\s+([^\s' + re.escape(BOLD_OPEN) + r']+)\s+'
+    r'(?:עב"ל|ע"א|בג"ץ|בג"צ|ב"ל|ע"ע|תיק|בר"ע)\s+([^\s' + re.escape(BOLD_OPEN) + r']+)\s+'
     + re.escape(BOLD_OPEN) + r'([^' + re.escape(BOLD_CLOSE) + r']+)' + re.escape(BOLD_CLOSE)
-    + r'\s*\([\d./]+\)'
+    + r'(?:\s*\([\d./]+\)|,\s*[\d./]+)'
 )
 
 
@@ -63,9 +63,23 @@ def _format_lawmate_citation(m):
     return f'{inner} ({date})'
 
 
+def _format_paren_lawmate_citation(m):
+    """Format: (PREFIX CASE_ID PARTIES (DATE LawMate)) -> (PREFIX CASE_ID **PARTIES**, DATE)"""
+    prefix = m.group(1).strip()
+    case_id = m.group(2).strip()
+    parties = m.group(3).strip().rstrip(',').strip()
+    date = m.group(4).strip()
+    if not re.search(r'[א-ת]', parties.replace('נ', '')):
+        return ''
+    return f'({prefix} {case_id} {_bold_parties(parties)}, {date})'
+
+
 def clean_text(t: str) -> str:
     if not t:
         return t
+
+    # 0. Strip directional marks (LRM/RLM) that fragment regex matching
+    t = t.replace('‎', '').replace('‏', '')
 
     # 1. Remove trailing appendix/page references ] (12) -> ]
     t = re.sub(r'\]\s*\(\d{1,4}\)', ']', t)
@@ -80,14 +94,24 @@ def clean_text(t: str) -> str:
     )
 
     # 4. Case-law citations with LawMate stamp
-    case_prefixes = ['עב"ל', 'ע"א', 'בג"ץ', 'ב"ל', 'ע"ע', 'תיק', 'בר"ע']
+    case_prefixes = ['עב"ל', 'ע"א', 'בג"ץ', 'בג"צ', 'ב"ל', 'ע"ע', 'תיק', 'בר"ע']
     for prefix in case_prefixes:
+        # 4a. Bracket format: [PREFIX ... (LawMate DATE)]
         t = re.sub(
             r'\[(' + re.escape(prefix) + r'[^\]]*?)\(LawMate\s+([^)]+)\)\]',
             _format_lawmate_citation, t)
+        # 4b. Bracket format: [PREFIX ... (DATE LawMate)]
         t = re.sub(
             r'\[(' + re.escape(prefix) + r'[^\]]*?)\(([\d./]+)\s+LawMate\)\]',
             _format_lawmate_citation, t)
+        # 4c. Paren format: (PREFIX CASE_ID PARTIES (DATE LawMate))
+        t = re.sub(
+            r'\(\s*(' + re.escape(prefix) + r')\s+([^\s()]+)\s+([^()]+?)\s*\(\s*([\d./]+)\s+LawMate\s*\)\s*\)',
+            _format_paren_lawmate_citation, t)
+        # 4d. Paren format: (PREFIX CASE_ID PARTIES (LawMate DATE))
+        t = re.sub(
+            r'\(\s*(' + re.escape(prefix) + r')\s+([^\s()]+)\s+([^()]+?)\s*\(\s*LawMate\s+([\d./]+)\s*\)\s*\)',
+            _format_paren_lawmate_citation, t)
 
     # 5. File references
     t = re.sub(r'\s*\[תיק-\d+[^\]]*\]', '', t)
