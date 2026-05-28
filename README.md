@@ -2,6 +2,33 @@
 
 Repository זה הוא ה-marketplace הפרטי של משרד מרקוס. הוא מתארח בשרת Gitea הפרטי ומשמש מקור התקנה ועדכון יחיד לכל המחשבים שבהם מותקן Claude Code.
 
+## כתובות ה-marketplace
+
+| מקור | כתובת |
+|---|---|
+| **Gitea (מקור-אמת)** | `https://gitea.prod.marcus-law.co.il/skills_and_plugins/marketplace.git` |
+| **GitHub (mirror)** | `https://github.com/PointStarIL/skills_and_plugins` |
+
+**הוספת marketplace במחשב חדש** (GitHub — עובד גם ב-Claude Desktop GUI):
+```
+/plugin marketplace add PointStarIL/skills_and_plugins
+```
+
+**התקנת הפלאג-אינים** (שם marketplace: `marcus-law`):
+```
+/plugin install marcus-law-appeals@marcus-law
+/plugin install marcus-law-decisions@marcus-law
+/plugin install marcus-law-content@marcus-law
+/plugin install marcus-law-client-management@marcus-law
+/plugin install marcus-law-drafting@marcus-law
+```
+
+**עדכון** (בכל מחשב):
+```
+/plugin marketplace update
+/plugin update
+```
+
 ## מבנה ה-repository
 
 ```
