@@ -17,23 +17,6 @@ from docx.oxml import OxmlElement
 BOLD_OPEN = '\x01'
 BOLD_CLOSE = '\x02'
 
-# Patterns for matching formatted citations in cleaned text (after bold markers applied)
-_FULL_CITE_RE = re.compile(
-    r'\([^,\)]+,\s*([^,\)]+),\s*'
-    + re.escape(BOLD_OPEN) + r'([^' + re.escape(BOLD_CLOSE) + r']+)' + re.escape(BOLD_CLOSE)
-    + r',\s*[\d./]+\)'
-)
-_LAWMATE_CITE_RE = re.compile(
-    r'(?:עב"ל|ע"א|בג"ץ|בג"צ|ב"ל|ע"ע|תיק|בר"ע)\s+([^\s' + re.escape(BOLD_OPEN) + r']+)\s+'
-    + re.escape(BOLD_OPEN) + r'([^' + re.escape(BOLD_CLOSE) + r']+)' + re.escape(BOLD_CLOSE)
-    + r'(?:\s*\([\d./]+\)|,\s*[\d./]+)'
-)
-
-
-def _first_party(parties_str: str) -> str:
-    m = re.match(r'^(.+?)\s+נ[\'.]', parties_str.strip())
-    return m.group(1).strip() if m else parties_str.strip()
-
 
 def _bold_parties(parties: str) -> str:
     parties = parties.strip().strip(',').strip()
@@ -64,22 +47,27 @@ def _format_lawmate_citation(m):
 
 
 def _format_paren_lawmate_citation(m):
-    """Format: (PREFIX CASE_ID PARTIES (DATE LawMate)) -> (PREFIX CASE_ID **PARTIES**, DATE)"""
+    """Format: (PREFIX CASE_ID PARTIES (DATE LawMate)) -> (PREFIX CASE_ID **PARTIES** (DATE))"""
     prefix = m.group(1).strip()
     case_id = m.group(2).strip()
     parties = m.group(3).strip().rstrip(',').strip()
     date = m.group(4).strip()
     if not re.search(r'[א-ת]', parties.replace('נ', '')):
         return ''
-    return f'({prefix} {case_id} {_bold_parties(parties)}, {date})'
+    return f'({prefix} {case_id} {_bold_parties(parties)} ({date}))'
 
 
 def clean_text(t: str) -> str:
     if not t:
         return t
 
-    # 0. Strip directional marks (LRM/RLM) that fragment regex matching
-    t = t.replace('‎', '').replace('‏', '')
+    # -1. Strip directional marks (LRM/RLM) that fragment regex matching
+    t = t.replace('\u200e', '').replace('\u200f', '')
+
+    # 0. Normalise dates DD/MM/YYYY -> DD.MM.YYYY. Case numbers (e.g.
+    #    64925-09-25) and law years (e.g. התשנ"ה-1995) use hyphens, so they
+    #    are never touched by this slash-only pattern.
+    t = re.sub(r'\b(\d{1,2})/(\d{1,2})/(\d{4})\b', r'\1.\2.\3', t)
 
     # 1. Remove trailing appendix/page references ] (12) -> ]
     t = re.sub(r'\]\s*\(\d{1,4}\)', ']', t)
@@ -136,6 +124,33 @@ MAIN_HEADING_EMU = 177800
 SUB_HEADING_EMU = 152400
 
 
+def _has_auto_numbering(p):
+    """True if the paragraph is a Word auto-numbered list item."""
+    style_name = p.style.name if p.style else ""
+    if style_name == "List Paragraph":
+        return True
+    pPr = p._p.find(qn('w:pPr'))
+    if pPr is not None and pPr.find(qn('w:numPr')) is not None:
+        return True
+    return False
+
+
+def _is_body_start(p, kind):
+    """True once we leave the formal court envelope and reach substantive
+    content. The envelope (court name, party blocks, addresses, "מהות"/nature
+    line) is built from plain paragraphs; the substantive body begins at the
+    first heading or the first numbered/list paragraph. This preserves opening
+    sections (1, 2, 3...) that appear before the first heading instead of
+    deleting them with the envelope."""
+    if kind in ("main_heading", "sub_heading", "flat_heading"):
+        return True
+    if _has_auto_numbering(p):
+        return True
+    if re.match(r'^(\d+|[א-ת])[.)]\s+', p.text.strip()):
+        return True
+    return False
+
+
 def classify_paragraph(p):
     raw = p.text.strip()
     if not raw:
@@ -163,14 +178,17 @@ def classify_paragraph(p):
         return ("sub_heading", clean_text(raw))
 
     if style_name == "Heading 2":
-        return ("main_heading", clean_text(raw))
+        return ("flat_heading", clean_text(raw))
 
     if re.match(r'^\*\s+', raw):
         return ("bullet", clean_text(re.sub(r'^\*\s+', '', raw)))
 
-    m = re.match(r'^(\d+|[א-ת])\.\s+(.*)$', raw)
-    if m:
-        return ("numbered", clean_text(m.group(2)))
+    # Auto-numbered list items (Word numbering / "List Paragraph" style) become
+    # body items numbered 1,2,3... by build_docx. Literal enumerations typed
+    # into the text itself (e.g. relief sub-items "א.", "ב.") are preserved
+    # verbatim as body, so we never strip or renumber the author's own markers.
+    if _has_auto_numbering(p):
+        return ("numbered", clean_text(raw))
 
     return ("body", clean_text(raw))
 
@@ -186,7 +204,7 @@ def extract_items(doc):
         if not text:
             continue
         if not in_body:
-            if kind == "main_heading":
+            if _is_body_start(p, kind):
                 in_body = True
             else:
                 continue
@@ -212,19 +230,24 @@ def post_process(items):
     for kind, text in items:
         if kind == "sub_heading" and text.strip() == "הסעדים המבוקשים":
             kind = "main_heading"
-        if kind == "main_heading":
+        if kind in ("main_heading", "flat_heading"):
             # Strip trailing clause; no em-dash reintroduction
             text = re.sub(r'\s*[—–\-]\s*עילת התביעה והסעדים המבוקשים\s*$', '', text)
             text = re.sub(r'\s*והסעדים המבוקשים\s*$', '', text)
         fixed.append((kind, text))
 
-    has_main = any(k == "main_heading" for k, _ in fixed)
+    has_real_main = any(k == "main_heading" for k, _ in fixed)
     has_sub = any(k == "sub_heading" for k, _ in fixed)
-    if has_main and not has_sub:
+    has_flat = any(k == "flat_heading" for k, _ in fixed)
+
+    # Genuine "flat" law-mate output: only Heading-2 headings, with no explicit
+    # main/sub hierarchy. Impose a top-level structure (פירוט הטענות / הסעדים
+    # המבוקשים / סוף דבר) by promoting the section flow.
+    if has_flat and not has_real_main and not has_sub:
         result = []
         synthetic_main_added = False
         for kind, text in fixed:
-            if kind != "main_heading":
+            if kind != "flat_heading":
                 result.append((kind, text))
                 continue
             if _looks_like_remedies(text):
@@ -241,35 +264,55 @@ def post_process(items):
             result.append(("sub_heading", text))
         return result
 
-    return fixed
+    # The document already carries its own section headings - keep them exactly
+    # as they are (do NOT collapse them under a synthetic "פירוט הטענות"). Any
+    # leftover flat heading is rendered as a normal main heading.
+    return [(("main_heading" if k == "flat_heading" else k), t) for k, t in fixed]
 
 
-def deduplicate_citations(items):
-    """Replace repeated case citations with 'עניין [first party]' after first occurrence."""
-    seen = {}
+# Pattern to match a full citation in body text:
+# (PREFIX CASE_ID \x01PARTIES\x02 (DATE))   or   (PREFIX CASE_ID \x01PARTIES\x02, DATE)
+_CITE_PREFIXES = '(?:עב"ל|ע"א|בג"ץ|בג"צ|ב"ל|ע"ע|תיק|בר"ע)'
+_CITE_RE = re.compile(
+    r'\(\s*(' + _CITE_PREFIXES + r')\s+'
+    r'([\S]+?)\s+'
+    + re.escape('\x01') + r'([^\x02]+)' + re.escape('\x02')
+    + r'\s*(?:\(\s*([\d./]+)\s*\)|,\s*([\d./]+))\s*\)'
+)
 
-    def replace_full(m):
-        key = re.sub(r'\s+', '', m.group(1).strip())
-        parties = m.group(2)
-        if key not in seen:
-            seen[key] = _first_party(parties)
-            return m.group(0)
-        return f'עניין {seen[key]}'
 
-    def replace_lawmate(m):
-        key = re.sub(r'\s+', '', m.group(1).strip())
-        parties = m.group(2)
-        if key not in seen:
-            seen[key] = _first_party(parties)
-            return m.group(0)
-        return f'עניין {seen[key]}'
+def _last_party_name(parties: str) -> str:
+    """Extract last name of first party from 'FirstName LastName נ' Defendant'."""
+    # Split on נ' or נ.
+    m = re.split(r"\s+נ['.]\s+", parties, maxsplit=1)
+    first_party = m[0].strip()
+    # Take last token as the last name
+    tokens = first_party.split()
+    if not tokens:
+        return parties
+    return tokens[-1]
 
-    result = []
+
+def dedup_citations(items):
+    """Replace repeat full citations of the same case_id with 'עניין LASTNAME'."""
+    seen = {}  # case_id -> last_name
+
+    def replace(m):
+        case_id = m.group(2)
+        parties = m.group(3)
+        if case_id in seen:
+            last = seen[case_id]
+            return f'עניין \x01{last}\x02'
+        last = _last_party_name(parties)
+        seen[case_id] = last
+        return m.group(0)
+
+    out = []
     for kind, text in items:
-        text = _FULL_CITE_RE.sub(replace_full, text)
-        text = _LAWMATE_CITE_RE.sub(replace_lawmate, text)
-        result.append((kind, text))
-    return result
+        if kind in ('body', 'numbered', 'bullet'):
+            text = _CITE_RE.sub(replace, text)
+        out.append((kind, text))
+    return out
 
 
 FONT_NAME = "David"
@@ -380,13 +423,6 @@ def _setup_numbering_definitions(doc):
         ind = OxmlElement('w:ind')
         ind.set(qn('w:left'), '360'); ind.set(qn('w:hanging'), '360')
         ppr.append(ind); lvl.append(ppr)
-        rpr = OxmlElement('w:rPr')
-        rFonts_n = OxmlElement('w:rFonts')
-        rFonts_n.set(qn('w:ascii'), FONT_NAME)
-        rFonts_n.set(qn('w:hAnsi'), FONT_NAME)
-        rFonts_n.set(qn('w:cs'), FONT_NAME)
-        rpr.append(rFonts_n)
-        lvl.append(rpr)
         abs_el.append(lvl)
         return abs_el
 
@@ -506,7 +542,7 @@ def main():
 
     items = extract_items(src)
     items = post_process(items)
-    items = deduplicate_citations(items)
+    items = dedup_citations(items)
 
     main_count = sum(1 for k, _ in items if k == "main_heading")
     sub_count = sum(1 for k, _ in items if k == "sub_heading")
