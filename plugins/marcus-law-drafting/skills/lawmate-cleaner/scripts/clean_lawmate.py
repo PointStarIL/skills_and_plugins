@@ -17,6 +17,23 @@ from docx.oxml import OxmlElement
 BOLD_OPEN = '\x01'
 BOLD_CLOSE = '\x02'
 
+# Patterns for matching formatted citations in cleaned text (after bold markers applied)
+_FULL_CITE_RE = re.compile(
+    r'\([^,\)]+,\s*([^,\)]+),\s*'
+    + re.escape(BOLD_OPEN) + r'([^' + re.escape(BOLD_CLOSE) + r']+)' + re.escape(BOLD_CLOSE)
+    + r',\s*[\d./]+\)'
+)
+_LAWMATE_CITE_RE = re.compile(
+    r'(?:עב"ל|ע"א|בג"ץ|ב"ל|ע"ע|תיק|בר"ע)\s+([^\s' + re.escape(BOLD_OPEN) + r']+)\s+'
+    + re.escape(BOLD_OPEN) + r'([^' + re.escape(BOLD_CLOSE) + r']+)' + re.escape(BOLD_CLOSE)
+    + r'\s*\([\d./]+\)'
+)
+
+
+def _first_party(parties_str: str) -> str:
+    m = re.match(r'^(.+?)\s+נ[\'.]', parties_str.strip())
+    return m.group(1).strip() if m else parties_str.strip()
+
 
 def _bold_parties(parties: str) -> str:
     parties = parties.strip().strip(',').strip()
@@ -203,6 +220,34 @@ def post_process(items):
     return fixed
 
 
+def deduplicate_citations(items):
+    """Replace repeated case citations with 'עניין [first party]' after first occurrence."""
+    seen = {}
+
+    def replace_full(m):
+        key = re.sub(r'\s+', '', m.group(1).strip())
+        parties = m.group(2)
+        if key not in seen:
+            seen[key] = _first_party(parties)
+            return m.group(0)
+        return f'עניין {seen[key]}'
+
+    def replace_lawmate(m):
+        key = re.sub(r'\s+', '', m.group(1).strip())
+        parties = m.group(2)
+        if key not in seen:
+            seen[key] = _first_party(parties)
+            return m.group(0)
+        return f'עניין {seen[key]}'
+
+    result = []
+    for kind, text in items:
+        text = _FULL_CITE_RE.sub(replace_full, text)
+        text = _LAWMATE_CITE_RE.sub(replace_lawmate, text)
+        result.append((kind, text))
+    return result
+
+
 FONT_NAME = "David"
 
 
@@ -311,6 +356,13 @@ def _setup_numbering_definitions(doc):
         ind = OxmlElement('w:ind')
         ind.set(qn('w:left'), '360'); ind.set(qn('w:hanging'), '360')
         ppr.append(ind); lvl.append(ppr)
+        rpr = OxmlElement('w:rPr')
+        rFonts_n = OxmlElement('w:rFonts')
+        rFonts_n.set(qn('w:ascii'), FONT_NAME)
+        rFonts_n.set(qn('w:hAnsi'), FONT_NAME)
+        rFonts_n.set(qn('w:cs'), FONT_NAME)
+        rpr.append(rFonts_n)
+        lvl.append(rpr)
         abs_el.append(lvl)
         return abs_el
 
@@ -430,6 +482,7 @@ def main():
 
     items = extract_items(src)
     items = post_process(items)
+    items = deduplicate_citations(items)
 
     main_count = sum(1 for k, _ in items if k == "main_heading")
     sub_count = sum(1 for k, _ in items if k == "sub_heading")
