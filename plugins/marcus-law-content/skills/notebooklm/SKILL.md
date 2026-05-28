@@ -1,6 +1,7 @@
 ---
 name: notebooklm
 description: "השתמש בסקיל הזה כדי לתשאל את ה-Google NotebookLM שלך ישירות מתוך Claude Code ולקבל תשובות של Gemini המעוגנות במסמכים שלך, עם ציטוטים מדויקים מהמקור. כולל אוטומציית דפדפן, ניהול ספריית מחברות, ושמירה רציפה של החיבור (persistent auth). הסקיל מקטין דרסטית הזיות בכך שהתשובות מבוססות אך ורק על המסמכים שהעלית. טריגרים: NotebookLM, NotebookLM URL, \"תשאל את ה-NotebookLM שלי\", \"בדוק את התיעוד שלי\", \"שאל את המחברת\", הוספת תיעוד לספריית NotebookLM."
+version: "1.0.0"
 ---
 
 # NotebookLM Research Assistant Skill
