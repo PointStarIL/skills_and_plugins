@@ -1,0 +1,15 @@
+{
+  "name": "marcus-law-drafting",
+  "version": "1.0.0",
+  "description": "חבילת ניסוח מסמכים משפטיים: יצירת מסמכי DOCX בעברית RTL, וניקוי טיוטות law-mate. כוללת 2 סקיילים.",
+  "author": {
+    "name": "Chaim Marcus",
+    "email": "chaim@marcus-law.co.il"
+  },
+  "keywords": [
+    "legal",
+    "hebrew",
+    "marcus-law"
+  ],
+  "license": "Private"
+}

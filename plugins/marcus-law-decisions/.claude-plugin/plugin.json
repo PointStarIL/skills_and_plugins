@@ -1,0 +1,15 @@
+{
+  "name": "marcus-law-decisions",
+  "version": "1.0.0",
+  "description": "חבילת כתיבת וארגון החלטות ועדת ערר: ניסוח פסקאות הכרעה, ארגון פרק הדיון, אימות שימור, וביקורת מבנית. כוללת 5 סקיילים וסוכן.",
+  "author": {
+    "name": "Chaim Marcus",
+    "email": "chaim@marcus-law.co.il"
+  },
+  "keywords": [
+    "legal",
+    "hebrew",
+    "marcus-law"
+  ],
+  "license": "Private"
+}

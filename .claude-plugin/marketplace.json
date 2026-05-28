@@ -9,47 +9,44 @@
   },
   "plugins": [
     {
-      "name": "appeal-decision-writer",
-      "source": "./plugins/appeal-decision-writer",
-      "description": "מומחה להשלמה וניסוח של פסקאות בחלק דיון והכרעה של החלטות ועדת ערר לתכנון ובנייה. עיקרון מוחלט: ציטוטים ופסיקה רק מתוך מסמכי הטיוטה. איסור מוחלט על מקף ארוך.",
+      "name": "marcus-law-appeals",
+      "source": "./plugins/marcus-law-appeals",
+      "description": "חבילת עררים: חילוץ טענות מכתבי בי-דין, בניית נספחי ערר, וארגון מסמכי ערר.",
       "category": "legal",
-      "tags": [
-        "legal",
-        "hebrew",
-        "appeals",
-        "planning-and-building"
-      ],
-      "author": {
-        "name": "Chaim Marcus",
-        "email": "chaim@marcus-law.co.il"
-      }
+      "tags": ["legal", "hebrew", "appeals", "betterment-levy", "licensing", "appendix"],
+      "author": { "name": "Chaim Marcus", "email": "chaim@marcus-law.co.il" }
     },
     {
-      "name": "appeal-claims-extractor",
-      "source": "./plugins/appeal-claims-extractor",
-      "description": "חילוץ שיטתי של טענות, עובדות, סעדים ואסמכתאות מכתבי בי-דין בעררי השבחה ורישוי. עיקרון מוחלט: רק מה שכתוב במפורש במסמך עצמו. איסור מוחלט על מקף ארוך.",
+      "name": "marcus-law-decisions",
+      "source": "./plugins/marcus-law-decisions",
+      "description": "חבילת החלטות ועדת ערר: כתיבת פסקאות דיון והכרעה, ארגון מבנה, ביקורת כתיבה, ובדיקת שימור.",
       "category": "legal",
-      "tags": [
-        "legal",
-        "hebrew",
-        "appeals",
-        "betterment-levy",
-        "licensing"
-      ],
-      "author": {
-        "name": "Chaim Marcus",
-        "email": "chaim@marcus-law.co.il"
-      }
+      "tags": ["legal", "hebrew", "appeals", "decisions", "planning-and-building"],
+      "author": { "name": "Chaim Marcus", "email": "chaim@marcus-law.co.il" }
     },
     {
-      "name": "test-auto-plugin",
-      "source": "./plugins/test-auto-plugin",
-      "description": "בדיקת מנגנון ה-upload האוטומטי. תמחק אחרי אימות.",
+      "name": "marcus-law-content",
+      "source": "./plugins/marcus-law-content",
+      "description": "חבילת תוכן: מצגות משפטיות בעברית, כתיבת מאמרים, ואינטגרציה עם NotebookLM.",
       "category": "legal",
-      "author": {
-        "name": "Chaim Marcus",
-        "email": "chaim@marcus-law.co.il"
-      }
+      "tags": ["legal", "hebrew", "content", "pptx", "notebooklm"],
+      "author": { "name": "Chaim Marcus", "email": "chaim@marcus-law.co.il" }
+    },
+    {
+      "name": "marcus-law-client-management",
+      "source": "./plugins/marcus-law-client-management",
+      "description": "חבילת ניהול לקוחות: ארגון תיקי לקוחות לסיוע משפטי.",
+      "category": "legal",
+      "tags": ["legal", "hebrew", "clients", "legal-aid"],
+      "author": { "name": "Chaim Marcus", "email": "chaim@marcus-law.co.il" }
+    },
+    {
+      "name": "marcus-law-drafting",
+      "source": "./plugins/marcus-law-drafting",
+      "description": "חבילת ניסוח: ניקוי מסמכי Lawmate, יצירת מסמכי Word משפטיים בתבנית קבועה.",
+      "category": "legal",
+      "tags": ["legal", "hebrew", "drafting", "docx", "lawmate"],
+      "author": { "name": "Chaim Marcus", "email": "chaim@marcus-law.co.il" }
     }
   ]
 }

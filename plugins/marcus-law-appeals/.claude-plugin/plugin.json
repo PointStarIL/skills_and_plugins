@@ -1,0 +1,15 @@
+{
+  "name": "marcus-law-appeals",
+  "version": "1.0.0",
+  "description": "חבילת עררי תכנון ובנייה למשרד מרקוס: חילוץ טענות מכתבי בי-דין, ארגון תיקי ערר, וכריכת נספחים מוכנים להגשה. כוללת 3 סקיילים.",
+  "author": {
+    "name": "Chaim Marcus",
+    "email": "chaim@marcus-law.co.il"
+  },
+  "keywords": [
+    "legal",
+    "hebrew",
+    "marcus-law"
+  ],
+  "license": "Private"
+}

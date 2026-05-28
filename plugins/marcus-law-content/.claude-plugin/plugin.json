@@ -1,0 +1,15 @@
+{
+  "name": "marcus-law-content",
+  "version": "1.0.0",
+  "description": "חבילת תוכן ומחקר: שאילתות NotebookLM, מצגות משפטיות בעברית, ומאמרים לאתר. כוללת 3 סקיילים.",
+  "author": {
+    "name": "Chaim Marcus",
+    "email": "chaim@marcus-law.co.il"
+  },
+  "keywords": [
+    "legal",
+    "hebrew",
+    "marcus-law"
+  ],
+  "license": "Private"
+}
