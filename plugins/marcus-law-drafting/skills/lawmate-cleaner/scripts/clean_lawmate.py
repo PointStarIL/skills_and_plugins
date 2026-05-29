@@ -222,33 +222,50 @@ _CITE_RE = re.compile(
 )
 
 
-def _last_party_name(parties: str) -> str:
-    m = re.split(r"\s+נ['.]\s+", parties, maxsplit=1)
-    first_party = m[0].strip()
-    tokens = first_party.split()
-    if not tokens:
-        return parties
-    return tokens[-1]
+def _tidy_after_removal(t: str) -> str:
+    """Clean up punctuation/whitespace left behind when a citation is deleted."""
+    t = re.sub(r'\(\s*\)', '', t)        # empty parens
+    t = re.sub(r'\s{2,}', ' ', t)        # collapse double spaces
+    t = re.sub(r'\s+([.,;:])', r'\1', t)  # space before punctuation
+    t = re.sub(r';\s*;', ';', t)          # orphaned ;;
+    t = re.sub(r';\s*([.)])', r'\1', t)   # "; ." -> "."
+    t = re.sub(r'\(\s*;', '(', t)         # "( ;"
+    return t.strip()
 
 
 def dedup_citations(items):
-    """Replace repeat full citations of the same case_id with 'עניין LASTNAME'."""
-    seen = {}
+    """De-duplicate repeated case-law citations.
 
-    def replace(m):
-        case_id = m.group(2)
-        parties = m.group(3)
-        if case_id in seen:
-            last = seen[case_id]
-            return f'עניין {BOLD_OPEN}{last}{BOLD_CLOSE}'
-        last = _last_party_name(parties)
-        seen[case_id] = last
-        return m.group(0)
+    A case is cited in full the first time it appears. Every later
+    parenthetical citation of the same case is removed entirely — the case
+    is already established, and the prose itself carries the name where it
+    matters ("הלכת עותמאן", "בעניין דורון כושאווי"). Leaving a bare
+    "עניין X" in place of the dropped citation reads as a dangling fragment,
+    so we delete the whole parenthetical and tidy the surrounding punctuation.
+    """
+    seen = set()
+
+    def process(text):
+        removed_any = False
+        result = []
+        pos = 0
+        for m in _CITE_RE.finditer(text):
+            result.append(text[pos:m.start()])
+            case_id = m.group(2)
+            if case_id not in seen:
+                seen.add(case_id)
+                result.append(m.group(0))   # first mention: keep full citation
+            else:
+                removed_any = True           # repeat: drop entirely
+            pos = m.end()
+        result.append(text[pos:])
+        out = ''.join(result)
+        return _tidy_after_removal(out) if removed_any else out
 
     out = []
     for kind, text in items:
         if kind in ('body', 'exhibit_ref', 'remedy'):
-            text = _CITE_RE.sub(replace, text)
+            text = process(text)
         out.append((kind, text))
     return out
 
