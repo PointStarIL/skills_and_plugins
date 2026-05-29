@@ -283,16 +283,27 @@ def _apply_paragraph_underline(p):
 
 
 def _add_run(p, text, bold=False, underline=False):
-    """Add a run. Styling (font, size, RTL) comes from the paragraph's style."""
+    """Add a run with an explicit RTL marker.
+
+    The font (David for complex-script Hebrew) and size come from the
+    paragraph's style. We must NOT set rFonts here: the Normal style already
+    maps ascii=Times New Roman / cs=David, so English stays Latin and Hebrew
+    stays David — exactly the user's design.
+
+    The catch: the List Paragraph style carries <w:rtl w:val="0"/>, which
+    disables RTL. Without a per-run <w:rtl/> override, Word treats Hebrew as
+    LTR and renders it in the ascii font (Times New Roman), left-aligned.
+    So every run gets an explicit <w:rtl/>. For bold party names, bCs is
+    required — Hebrew only renders bold via the complex-script flag.
+    """
     r = p.add_run(text)
+    rPr = r._r.get_or_add_rPr()
     if bold:
         r.bold = True
-        # Complex-script bold (Hebrew renders bold only with bCs)
-        rPr = r._r.get_or_add_rPr()
-        bCs = OxmlElement('w:bCs')
-        rPr.append(bCs)
+        rPr.append(OxmlElement('w:bCs'))  # complex-script bold for Hebrew
     if underline:
         r.underline = True
+    rPr.append(OxmlElement('w:rtl'))  # override List Paragraph's rtl=0
     return r
 
 
