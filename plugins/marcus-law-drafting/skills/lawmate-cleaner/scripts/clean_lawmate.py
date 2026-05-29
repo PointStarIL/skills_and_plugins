@@ -48,6 +48,11 @@ SUB_HEADING_EMU = 152400    # 12pt
 # Detection patterns
 EXHIBIT_RE = re.compile(r'מצורף\s+ומסומן\s+כנספח\s+\d+')
 REMEDY_PREFIX_RE = re.compile(r'^([א-ת])\.\s+(.+)$', re.DOTALL)
+# Splits an exhibit sentence into (description, number):
+# "העתק X מיום ... מצורף ומסומן כנספח 3." -> desc="העתק X מיום ...", num=3
+EXHIBIT_PARSE_RE = re.compile(r'^(.*?)\s*מצורף\s+ומסומן\s+כנספח\s+(\d+)')
+
+EXHIBIT_LIST_HEADING = "רשימת הנספחים"
 
 
 def _bold_parties(parties: str) -> str:
@@ -343,6 +348,35 @@ def _add_formatted_text(p, text, underline=False):
         _add_run(p, text[pos:], underline=underline)
 
 
+def _parse_exhibit(text):
+    """From an exhibit sentence, return (number:int, description:str).
+
+    "העתק פסק הדין ... מצורף ומסומן כנספח 2." -> (2, "העתק פסק הדין ...")
+    Returns None if the sentence doesn't match the expected shape.
+    """
+    plain = text.replace(BOLD_OPEN, '').replace(BOLD_CLOSE, '')
+    m = EXHIBIT_PARSE_RE.match(plain)
+    if not m:
+        return None
+    desc = m.group(1).strip()
+    return (int(m.group(2)), desc)
+
+
+def _add_exhibit_list(doc, exhibits):
+    """Append a consolidated exhibit index at the end of the document:
+    a Heading 2 'רשימת הנספחים' followed by one line per exhibit, ordered
+    by number, each reading 'נספח N - <description>' with 'נספח N' bold."""
+    if not exhibits:
+        return
+    heading = doc.add_paragraph(style=STYLE_HEADING)
+    _add_run(heading, EXHIBIT_LIST_HEADING)
+    for num, desc in sorted(exhibits, key=lambda e: e[0]):
+        p = doc.add_paragraph(style=STYLE_BODY)
+        _set_numbering(p, EXHIBIT_NUMID)   # override → no auto list marker
+        _add_run(p, f'נספח {num} - ', bold=True)
+        _add_run(p, desc)
+
+
 def build_docx(items, output_path):
     if not TEMPLATE_PATH.exists():
         raise FileNotFoundError(f"Template not found: {TEMPLATE_PATH}")
@@ -352,6 +386,7 @@ def build_docx(items, output_path):
     placeholder = doc.paragraphs[0]
     placeholder._element.getparent().remove(placeholder._element)
 
+    exhibits = []
     for kind, text in items:
         if kind == "sub_heading":
             clean = text.replace(BOLD_OPEN, '').replace(BOLD_CLOSE, '')
@@ -364,6 +399,9 @@ def build_docx(items, output_path):
             _set_numbering(p, EXHIBIT_NUMID)   # override → no list marker
             _apply_paragraph_underline(p)
             _add_formatted_text(p, text, underline=True)
+            parsed = _parse_exhibit(text)
+            if parsed:
+                exhibits.append(parsed)
             continue
 
         if kind == "remedy":
@@ -375,6 +413,9 @@ def build_docx(items, output_path):
         # body
         p = doc.add_paragraph(style=STYLE_BODY)
         _add_formatted_text(p, text)
+
+    # Consolidated exhibit index at the very end
+    _add_exhibit_list(doc, exhibits)
 
     doc.save(output_path)
 
