@@ -191,9 +191,9 @@ def split_pdf(source_path, output_folder, splits):
 
 לאחר הארגון והפיצול, צור מסמך DOCX שמסכם את כל התיק.
 
-### שימוש בסקיל legal-docx
+### בניית מסמך הסיכום
 
-קרא את סקיל `legal-docx` ופעל לפי ההוראות שלו ליצירת מסמך RTL בעברית.
+לבניית הקובץ השתמש במנוע `docx-hebrew-engine` (מחבילת `marcus-law-drafting`) - מקור-האמת לעיצוב מסמכי עברית (RTL, פונט David, שוליים, מספור). למבנה משפטי מובנה ראה גם `legal-docx`. אם החבילה `marcus-law-drafting` אינה מותקנת, בנה DOCX עם python-docx לפי הכללים: פונט David גודל 12, RTL מלא (w:rtl לכל run, w:bidi לפסקה ולסקציה), שוליים 2.54 ס"מ, מרווח שורות 1.5.
 
 ### מבנה מסמך הסיכום
 
@@ -276,6 +276,6 @@ def split_pdf(source_path, output_folder, splits):
 ## תלויות
 
 - **PyPDF2**: לפיצול קבצי PDF (`pip install PyPDF2 --break-system-packages`)
-- **סקיל legal-docx**: ליצירת מסמך הסיכום בעברית (קרא אותו לפני שלב 3)
+- **מנוע docx-hebrew-engine** (חבילת `marcus-law-drafting`): לבניית מסמך הסיכום בעברית; `legal-docx` למבנה משפטי
 - **כלי Read**: לקריאת תוכן PDF (עם פרמטר pages)
 - **כלי Bash**: להעברת קבצים ויצירת תיקיות

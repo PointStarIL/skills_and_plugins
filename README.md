@@ -54,6 +54,19 @@ Repository זה הוא ה-marketplace הפרטי של משרד מרקוס. הו�
 4. הוסף רשומה חדשה למערך `plugins` בקובץ `.claude-plugin/marketplace.json`, עם `name` ו-`source` יחסי (`./plugins/<plugin-name>`).
 5. commit ו-push לשרת. מרגע זה כל מחשב שמושך עדכון יקבל את הפלאג-אין החדש.
 
+## מנוע DOCX משותף (docx-hebrew-engine)
+
+הסקיל `docx-hebrew-engine` שבחבילת `marcus-law-drafting` הוא **מקור-האמת היחיד**
+לעיצוב מסמכי Word בעברית: RTL נכון, פונט David, מספור, שוליים וסגנונות. כל
+שינוי עיצוב נעשה ב-`template.docx` שלו וחל על כל המסמכים.
+
+- חבילות `marcus-law-appeals` ו-`marcus-law-client-management` מצהירות תלות
+  (`dependencies`) על `marcus-law-drafting`, כך שהמנוע מותקן אוטומטית איתן.
+- `lawmate-cleaner` ו-`legal-docx` (באותה חבילה) משתמשים במנוע ישירות.
+- `appeal-decision-writer` (חבילת decisions) הוא יוצא דופן מכוון: צורת החלטת
+  ועדת ערר שונה (פרוזה ללא מספור, שלוש רמות כותרת), ולכן הוא שומר מימוש RTL
+  עצמאי משלו ואינו עובר דרך המנוע.
+
 ## מנגנון גרסאות ועדכון
 
 בקבצי ה-`plugin.json` כאן **לא** מוגדר שדה `version` בכוונה. כך כל commit חדש נחשב אוטומטית לגרסה חדשה, וכל push מפיץ עדכון. זו ההגדרה הפשוטה ביותר לעבודה שוטפת.
