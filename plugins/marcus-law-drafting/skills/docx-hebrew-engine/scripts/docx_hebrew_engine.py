@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-hebrew_docx - מנוע משותף לבניית מסמכי Word משפטיים בעברית (python-docx).
+docx_hebrew_engine - מנוע משותף לבניית מסמכי Word משפטיים בעברית (python-docx).
 
 מקור-אמת יחיד לעיצוב: כל הסגנונות, הגדרות המספור, השוליים וה-RTL יושבים
 ב-`template.docx` שלצד הקובץ הזה. כל מסמך שנבנה דרך המנוע פותח את התבנית
@@ -19,7 +19,7 @@ hebrew_docx - מנוע משותף לבניית מסמכי Word משפטיים ב
     import sys
     from pathlib import Path
     sys.path.insert(0, str(Path(__file__).resolve().parents[N] / "shared"))
-    import hebrew_docx as hd
+    import docx_hebrew_engine as hd
 
     doc = hd.open_document()
     hd.add_heading(doc, "רקע עובדתי ותיאור הצדדים")
@@ -42,7 +42,7 @@ from docx.oxml import OxmlElement
 BOLD_OPEN = '\x01'
 BOLD_CLOSE = '\x02'
 
-TEMPLATE_PATH = Path(__file__).resolve().parent / "template.docx"
+TEMPLATE_PATH = Path(__file__).resolve().parent.parent / "references" / "template.docx"
 
 # Style names (resolved by python-docx via name → styleId lookup in the template)
 STYLE_BODY = "List Paragraph"     # auto-numbered 1, 2, 3 (numId=14 via style)
