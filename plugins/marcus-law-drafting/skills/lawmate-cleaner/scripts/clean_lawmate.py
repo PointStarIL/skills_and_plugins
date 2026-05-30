@@ -3,8 +3,8 @@
 Lawmate Cleaner - עיבוד טיוטות משפטיות שהופקו ממערכת law-mate.
 
 הסקריפט מנקה את הטקסט (LawMate stamps, file refs, em-dashes, LRM/RLM marks,
-date normalisation, citation deduplication) ובונה DOCX מעוצב על-בסיס תבנית
-(`references/template.docx`) שכוללת סגנונות בשם: Normal, List Paragraph
+date normalisation, citation deduplication) ובונה DOCX מעוצב דרך המנוע המשותף
+docx-hebrew-engine, שמחזיק את התבנית והסגנונות בשם: Normal, List Paragraph
 (decimal auto-numbering), Heading 2, hebrew1 numbering לסעדים.
 
 מבנה הפלט:
@@ -24,22 +24,16 @@ from pathlib import Path
 
 from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH
-from docx.oxml.ns import qn
-from docx.oxml import OxmlElement
 
-
-BOLD_OPEN = '\x01'
-BOLD_CLOSE = '\x02'
-
-TEMPLATE_PATH = Path(__file__).resolve().parent.parent / "references" / "template.docx"
-
-# numId values defined in template.docx's numbering.xml:
-EXHIBIT_NUMID = 0      # override → "no list" (paragraph gets underline only)
-REMEDY_NUMID = 43      # → abstractNumId=7 (hebrew1: א., ב., ג., ד.)
-
-# Style names (resolved by python-docx via name → styleId lookup)
-STYLE_BODY = "List Paragraph"
-STYLE_HEADING = "Heading 2"
+# Shared engine: the docx-hebrew-engine skill is the single source of truth
+# for styles/template/RTL — all DOCX generation routes through it.
+sys.path.insert(0, str(
+    Path(__file__).resolve().parents[2] / "docx-hebrew-engine" / "scripts"))
+import docx_hebrew_engine as hd
+from docx_hebrew_engine import (
+    BOLD_OPEN, BOLD_CLOSE, STYLE_BODY, STYLE_HEADING,
+    EXHIBIT_NUMID, REMEDY_NUMID,
+)
 
 # EMU thresholds for heading detection in lawmate input
 MAIN_HEADING_EMU = 177800   # 14pt
@@ -275,77 +269,7 @@ def dedup_citations(items):
     return out
 
 
-# ----- DOCX building (template-based) -----------------------------------
-
-
-def _set_numbering(p, num_id, ilvl=0):
-    """Apply explicit numPr (overrides the style's inherited numbering)."""
-    pPr = p._p.get_or_add_pPr()
-    numPr = OxmlElement('w:numPr')
-    ilvl_el = OxmlElement('w:ilvl')
-    ilvl_el.set(qn('w:val'), str(ilvl))
-    numPr.append(ilvl_el)
-    numId_el = OxmlElement('w:numId')
-    numId_el.set(qn('w:val'), str(num_id))
-    numPr.append(numId_el)
-    pPr.append(numPr)
-
-
-def _apply_paragraph_underline(p):
-    """Add paragraph-level rPr with single underline. Affects auto-rendered list
-    marker (if any) and any subsequent runs that don't override."""
-    pPr = p._p.get_or_add_pPr()
-    rPr = pPr.find(qn('w:rPr'))
-    if rPr is None:
-        rPr = OxmlElement('w:rPr')
-        pPr.append(rPr)
-    u = OxmlElement('w:u')
-    u.set(qn('w:val'), 'single')
-    rPr.append(u)
-
-
-def _add_run(p, text, bold=False, underline=False):
-    """Add a run with an explicit RTL marker.
-
-    The font (David for complex-script Hebrew) and size come from the
-    paragraph's style. We must NOT set rFonts here: the Normal style already
-    maps ascii=Times New Roman / cs=David, so English stays Latin and Hebrew
-    stays David — exactly the user's design.
-
-    The catch: the List Paragraph style carries <w:rtl w:val="0"/>, which
-    disables RTL. Without a per-run <w:rtl/> override, Word treats Hebrew as
-    LTR and renders it in the ascii font (Times New Roman), left-aligned.
-    So every run gets an explicit <w:rtl/>. For bold party names, bCs is
-    required — Hebrew only renders bold via the complex-script flag.
-    """
-    r = p.add_run(text)
-    rPr = r._r.get_or_add_rPr()
-    if bold:
-        r.bold = True
-        rPr.append(OxmlElement('w:bCs'))  # complex-script bold for Hebrew
-    if underline:
-        r.underline = True
-    rPr.append(OxmlElement('w:rtl'))  # override List Paragraph's rtl=0
-    return r
-
-
-def _add_formatted_text(p, text, underline=False):
-    """Add text with inline bold markers (\\x01..\\x02 around party names)
-    converted to bold runs. underline=True applies to every run."""
-    if not text:
-        return
-    if BOLD_OPEN not in text:
-        _add_run(p, text, underline=underline)
-        return
-    pattern = re.compile(re.escape(BOLD_OPEN) + r'(.*?)' + re.escape(BOLD_CLOSE))
-    pos = 0
-    for m in pattern.finditer(text):
-        if m.start() > pos:
-            _add_run(p, text[pos:m.start()], underline=underline)
-        _add_run(p, m.group(1), bold=True, underline=underline)
-        pos = m.end()
-    if pos < len(text):
-        _add_run(p, text[pos:], underline=underline)
+# ----- DOCX building (delegates to the shared docx_hebrew_engine) --------
 
 
 def _parse_exhibit(text):
@@ -369,55 +293,41 @@ def _add_exhibit_list(doc, exhibits):
     if not exhibits:
         return
     heading = doc.add_paragraph(style=STYLE_HEADING)
-    _add_run(heading, EXHIBIT_LIST_HEADING)
+    hd.add_run(heading, EXHIBIT_LIST_HEADING)
     for num, desc in sorted(exhibits, key=lambda e: e[0]):
         p = doc.add_paragraph(style=STYLE_BODY)
-        _set_numbering(p, EXHIBIT_NUMID)   # override → no auto list marker
-        _add_run(p, f'נספח {num} - ', bold=True)
-        _add_run(p, desc)
+        hd.set_numbering(p, EXHIBIT_NUMID)   # override → no auto list marker
+        hd.add_run(p, f'נספח {num} - ', bold=True)
+        hd.add_run(p, desc)
 
 
 def build_docx(items, output_path):
-    if not TEMPLATE_PATH.exists():
-        raise FileNotFoundError(f"Template not found: {TEMPLATE_PATH}")
-    doc = Document(str(TEMPLATE_PATH))
-
-    # Remove the placeholder paragraph in the template
-    placeholder = doc.paragraphs[0]
-    placeholder._element.getparent().remove(placeholder._element)
+    doc = hd.open_document()
 
     exhibits = []
     for kind, text in items:
         if kind == "sub_heading":
-            clean = text.replace(BOLD_OPEN, '').replace(BOLD_CLOSE, '')
-            p = doc.add_paragraph(style=STYLE_HEADING)
-            _add_run(p, clean)
+            hd.add_heading(doc, text)
             continue
 
         if kind == "exhibit_ref":
-            p = doc.add_paragraph(style=STYLE_BODY)
-            _set_numbering(p, EXHIBIT_NUMID)   # override → no list marker
-            _apply_paragraph_underline(p)
-            _add_formatted_text(p, text, underline=True)
+            hd.add_exhibit_ref(doc, text)
             parsed = _parse_exhibit(text)
             if parsed:
                 exhibits.append(parsed)
             continue
 
         if kind == "remedy":
-            p = doc.add_paragraph(style=STYLE_BODY)
-            _set_numbering(p, REMEDY_NUMID)    # hebrew1 (א., ב., ג., ד.)
-            _add_formatted_text(p, text)
+            hd.add_hebrew_item(doc, text)
             continue
 
         # body
-        p = doc.add_paragraph(style=STYLE_BODY)
-        _add_formatted_text(p, text)
+        hd.add_body(doc, text)
 
     # Consolidated exhibit index at the very end
     _add_exhibit_list(doc, exhibits)
 
-    doc.save(output_path)
+    hd.save(doc, output_path)
 
 
 def main():
