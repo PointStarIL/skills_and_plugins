@@ -1,7 +1,7 @@
 {
   "name": "marcus-law-drafting",
-  "version": "1.1.0",
-  "description": "חבילת ניסוח מסמכים משפטיים: יצירת מסמכי DOCX בעברית RTL, וניקוי טיוטות law-mate. כוללת 3 סקיילים, ובהם מנוע docx-hebrew-engine - מקור-אמת משותף לעיצוב.",
+  "version": "1.2.0",
+  "description": "חבילת ניסוח מסמכים משפטיים: יצירת מסמכי DOCX בעברית RTL, וניקוי טיוטות law-mate. כוללת 3 סקיילים עם חלוקת תפקידים ברורה: docx-hebrew-engine (עיצוב/בנייה - מקור-אמת), legal-docx (מבנה משפטי + tracked-changes), lawmate-cleaner (ניקוי טיוטות).",
   "author": {
     "name": "Chaim Marcus",
     "email": "chaim@marcus-law.co.il"
