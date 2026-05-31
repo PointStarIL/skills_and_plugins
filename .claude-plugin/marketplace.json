@@ -9,19 +9,11 @@
   },
   "plugins": [
     {
-      "name": "marcus-law-appeals",
-      "source": "./plugins/marcus-law-appeals",
-      "description": "חבילת עררים: חילוץ טענות מכתבי בי-דין, בניית נספחי ערר, וארגון מסמכי ערר.",
+      "name": "marcus-law-appeal-committee",
+      "source": "./plugins/marcus-law-appeal-committee",
+      "description": "חבילת ועדת ערר לתכנון ובנייה: חילוץ טענות וארגון תיקי ערר, וכתיבה/ארגון/אימות/ביקורת של החלטות ועדת הערר.",
       "category": "legal",
-      "tags": ["legal", "hebrew", "appeals", "betterment-levy", "licensing", "appendix"],
-      "author": { "name": "Chaim Marcus", "email": "chaim@marcus-law.co.il" }
-    },
-    {
-      "name": "marcus-law-decisions",
-      "source": "./plugins/marcus-law-decisions",
-      "description": "חבילת החלטות ועדת ערר: כתיבת פסקאות דיון והכרעה, ארגון מבנה, ביקורת כתיבה, ובדיקת שימור.",
-      "category": "legal",
-      "tags": ["legal", "hebrew", "appeals", "decisions", "planning-and-building"],
+      "tags": ["legal", "hebrew", "appeals", "decisions", "betterment-levy", "licensing", "planning-and-building"],
       "author": { "name": "Chaim Marcus", "email": "chaim@marcus-law.co.il" }
     },
     {
@@ -43,9 +35,9 @@
     {
       "name": "marcus-law-drafting",
       "source": "./plugins/marcus-law-drafting",
-      "description": "חבילת ניסוח: ניקוי מסמכי Lawmate, יצירת מסמכי Word משפטיים בתבנית קבועה.",
+      "description": "חבילת ניסוח וייצור מסמכים: ניקוי טיוטות law-mate, יצירת מסמכי Word משפטיים בתבנית קבועה, עריכה מתקדמת, וכריכת נספחים ל-PDF.",
       "category": "legal",
-      "tags": ["legal", "hebrew", "drafting", "docx", "lawmate"],
+      "tags": ["legal", "hebrew", "drafting", "docx", "lawmate", "appendix"],
       "author": { "name": "Chaim Marcus", "email": "chaim@marcus-law.co.il" }
     }
   ]

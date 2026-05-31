@@ -4,8 +4,8 @@
 
 ## סקיילים בחבילה
 
-- notebooklm
-- hebrew-legal-pptx
-- marcus-law-article
+- ask-notebooklm — תשאול Google NotebookLM עם תשובות מעוגנות וציטוטים
+- make-hebrew-slides — יצירת מצגות PowerPoint בעברית בעיצוב משפטי
+- write-website-article — מאמרים דו-לשוניים לאתר marcus-law.co.il
 
 Chaim Marcus, Marcus Law (marcus-law.co.il)

@@ -1,0 +1,18 @@
+{
+  "name": "marcus-law-appeal-committee",
+  "version": "1.0.0",
+  "description": "חבילת ועדת ערר לתכנון ובנייה: חילוץ טענות וארגון תיקי ערר, וכתיבה/ארגון/אימות/ביקורת של החלטות ועדת הערר. כוללת 7 סקיילים וסוכן.",
+  "author": {
+    "name": "Chaim Marcus",
+    "email": "chaim@marcus-law.co.il"
+  },
+  "keywords": [
+    "legal",
+    "hebrew",
+    "marcus-law"
+  ],
+  "license": "Private",
+  "dependencies": [
+    "marcus-law-drafting"
+  ]
+}

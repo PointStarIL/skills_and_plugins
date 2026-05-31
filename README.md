@@ -21,11 +21,10 @@ Repository זה הוא ה-marketplace הפרטי של משרד מרקוס, ומ�
 
 **התקנת הפלאג-אינים** (שם marketplace: `marcus-law`):
 ```
-/plugin install marcus-law-appeals@marcus-law
-/plugin install marcus-law-decisions@marcus-law
+/plugin install marcus-law-appeal-committee@marcus-law
+/plugin install marcus-law-drafting@marcus-law
 /plugin install marcus-law-content@marcus-law
 /plugin install marcus-law-client-management@marcus-law
-/plugin install marcus-law-drafting@marcus-law
 ```
 
 **עדכון ב-Claude Code (CLI)**:
@@ -52,13 +51,15 @@ Repository זה הוא ה-marketplace הפרטי של משרד מרקוס, ומ�
 ├── .claude-plugin/
 │   └── marketplace.json        קטלוג ה-marketplace (רשימת הפלאג-אינים)
 ├── plugins/                    כל פלאג-אין בתת-תיקייה משלו
-│   ├── appeal-decision-writer/
+│   ├── marcus-law-appeal-committee/   ועדת ערר: טיפול בעררים + כתיבת החלטות
 │   │   ├── .claude-plugin/plugin.json
-│   │   ├── skills/...
+│   │   ├── skills/<skill>/SKILL.md
+│   │   ├── agents/
 │   │   └── README.md
-│   ├── appeal-claims-extractor/
-│   │   └── ...
-│   └── _template-plugin/        תבנית להעתקה כשמוסיפים פלאג-אין חדש
+│   ├── marcus-law-drafting/           ייצור מסמכים (מנוע DOCX, ניקוי, נספחים)
+│   ├── marcus-law-content/            מצגות, מאמרים, NotebookLM
+│   ├── marcus-law-client-management/  ארגון תיקי לקוח (סיוע משפטי)
+│   └── _template-plugin/              תבנית להעתקה כשמוסיפים פלאג-אין חדש
 └── README.md
 ```
 
@@ -72,17 +73,17 @@ Repository זה הוא ה-marketplace הפרטי של משרד מרקוס, ומ�
    המיזוג מפעיל את ה-auto-sync של Claude Desktop (Cowork); משתמשי Claude Code יקבלו את
    העדכון אחרי `/plugin marketplace update`. ה-mirror ב-Gitea מתעדכן אוטומטית מ-GitHub.
 
-## מנוע DOCX משותף (docx-hebrew-engine)
+## מנוע DOCX משותף (hebrew-docx-engine)
 
-הסקיל `docx-hebrew-engine` שבחבילת `marcus-law-drafting` הוא **מקור-האמת היחיד**
+הסקיל `hebrew-docx-engine` שבחבילת `marcus-law-drafting` הוא **מקור-האמת היחיד**
 לעיצוב מסמכי Word בעברית: RTL נכון, פונט David, מספור, שוליים וסגנונות. כל
 שינוי עיצוב נעשה ב-`template.docx` שלו וחל על כל המסמכים.
 
-- חבילות `marcus-law-appeals` ו-`marcus-law-client-management` מצהירות תלות
+- חבילות `marcus-law-appeal-committee` ו-`marcus-law-client-management` מצהירות תלות
   (`dependencies`) על `marcus-law-drafting`, כך שהמנוע מותקן אוטומטית איתן.
-- `lawmate-cleaner` ו-`legal-docx` (באותה חבילה) משתמשים במנוע ישירות.
-- `appeal-decision-writer` (חבילת decisions) הוא יוצא דופן מכוון: צורת החלטת
-  ועדת ערר שונה (פרוזה ללא מספור, שלוש רמות כותרת), ולכן הוא שומר מימוש RTL
+- `clean-lawmate-draft` ו-`edit-legal-docx` (באותה חבילה) משתמשים במנוע ישירות.
+- `write-appeal-decision` (חבילת `marcus-law-appeal-committee`) הוא יוצא דופן מכוון: צורת
+  החלטת ועדת ערר שונה (פרוזה ללא מספור, שלוש רמות כותרת), ולכן הוא שומר מימוש RTL
   עצמאי משלו ואינו עובר דרך המנוע.
 
 ## מנגנון גרסאות ועדכון
