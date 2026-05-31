@@ -1,13 +1,18 @@
 # marcus-law - Marketplace פרטי לפלאג-אינים משפטיים
 
-Repository זה הוא ה-marketplace הפרטי של משרד מרקוס. הוא מתארח בשרת Gitea הפרטי ומשמש מקור התקנה ועדכון יחיד לכל המחשבים שבהם מותקן Claude Code.
+Repository זה הוא ה-marketplace הפרטי של משרד מרקוס, ומשמש מקור התקנה ועדכון לכל המחשבים שבהם מותקן Claude Code וכן ל-Claude Desktop (Cowork).
 
 ## כתובות ה-marketplace
 
-| מקור | כתובת |
-|---|---|
-| **Gitea (מקור-אמת)** | `https://gitea.prod.marcus-law.co.il/skills_and_plugins/marketplace.git` |
-| **GitHub (mirror)** | `https://github.com/PointStarIL/skills_and_plugins` |
+| מקור | כתובת | תפקיד |
+|---|---|---|
+| **GitHub** | `https://github.com/PointStarIL/skills_and_plugins` | **מקור-אמת** — כאן נדחפים השינויים, וכאן ממוזגים PRs שמפעילים את הסנכרון ל-Claude Desktop (Cowork) |
+| **Gitea (פרטי)** | `https://gitea.prod.marcus-law.co.il/skills_and_plugins/marketplace.git` | **mirror** — עותק גיבוי פרטי שמסונכרן אוטומטית מ-GitHub (cron בשרת hetzner) |
+
+> **שים לב — היפוך תפקידים (2026-05-31):** עד היום Gitea היה מקור-האמת ו-GitHub היה ה-mirror.
+> כעת ההפך: **GitHub הוא מקור-האמת**. הסיבה: Claude Desktop (Cowork) מסנכרן את ה-marketplace
+> רק כש**ממוזג PR ב-GitHub** (auto-sync), ו-push-mirror מ-Gitea לעולם לא יוצר אירוע מיזוג-PR.
+> ראה את הסעיף "עדכון ב-Claude Desktop (Cowork)" למטה.
 
 **הוספת marketplace במחשב חדש** (GitHub — עובד גם ב-Claude Desktop GUI):
 ```
@@ -23,11 +28,22 @@ Repository זה הוא ה-marketplace הפרטי של משרד מרקוס. הו�
 /plugin install marcus-law-drafting@marcus-law
 ```
 
-**עדכון** (בכל מחשב):
+**עדכון ב-Claude Code (CLI)**:
 ```
-/plugin marketplace update
+/plugin marketplace update marcus-law
 /plugin update
 ```
+(שם ה-marketplace המקומי ב-CLI הוא `marcus-law` — משדה `name` ב-`marketplace.json`. אי-ההתאמה
+לשם ה-repo `skills_and_plugins` שנראה ב-directory תקינה ואינה דורשת תיקון.)
+
+**עדכון ב-Claude Desktop (Cowork)** — המנגנון שונה לחלוטין מה-CLI:
+- ה-marketplace מסונכרן מ-GitHub. **auto-sync מופעל רק כשממוזג PR ל-repo ב-GitHub**, ולכן
+  פרסום שינויים נעשה דרך **branch + PR + merge** ב-GitHub (לא push ישיר ל-main בלבד).
+- סנכרון ידני בכל רגע: Customize → Plugins → לבחור את ה-marketplace → ללחוץ **"Update"**.
+- דרישת תשתית: **Claude GitHub App** מותקן על `PointStarIL/skills_and_plugins`, ו-"Sync automatically" דלוק.
+- הסנכרון עשוי לקחת **עד ~30 דקות**, והשינוי נכנס ב-session הבא או אחרי refresh.
+- מקור רשמי: Anthropic Help Center מאמרים #13837440 ("Use plugins in Claude") ו-#13837433
+  ("Manage plugins for your organization").
 
 ## מבנה ה-repository
 
@@ -52,7 +68,9 @@ Repository זה הוא ה-marketplace הפרטי של משרד מרקוס. הו�
 2. ערוך את `plugin.json` (שדה `name` חייב להיות זהה לשם התיקייה).
 3. הוסף את הסקיילים תחת `skills/<skill-name>/SKILL.md`.
 4. הוסף רשומה חדשה למערך `plugins` בקובץ `.claude-plugin/marketplace.json`, עם `name` ו-`source` יחסי (`./plugins/<plugin-name>`).
-5. commit ו-push לשרת. מרגע זה כל מחשב שמושך עדכון יקבל את הפלאג-אין החדש.
+5. commit, ופרסם דרך **PR ל-main ב-GitHub** (`git push origin <branch>` ואז מיזוג ה-PR).
+   המיזוג מפעיל את ה-auto-sync של Claude Desktop (Cowork); משתמשי Claude Code יקבלו את
+   העדכון אחרי `/plugin marketplace update`. ה-mirror ב-Gitea מתעדכן אוטומטית מ-GitHub.
 
 ## מנוע DOCX משותף (docx-hebrew-engine)
 
@@ -69,6 +87,13 @@ Repository זה הוא ה-marketplace הפרטי של משרד מרקוס. הו�
 
 ## מנגנון גרסאות ועדכון
 
-בקבצי ה-`plugin.json` כאן **לא** מוגדר שדה `version` בכוונה. כך כל commit חדש נחשב אוטומטית לגרסה חדשה, וכל push מפיץ עדכון. זו ההגדרה הפשוטה ביותר לעבודה שוטפת.
+קובצי ה-`plugin.json` כאן מגדירים שדה `version` מפורש, ויש **להעלות אותו בכל שינוי** בחבילה
+(1.0.1 → 1.1.0 וכו'). אל תגדיר `version` גם ב-`plugin.json` וגם ברשומת ה-marketplace — הערך
+ב-`plugin.json` תמיד גובר.
 
-אם בעתיד תרצה שליטה בגרסאות (לשחרר עדכון רק כשאתה מחליט), הוסף שדה `"version": "1.0.0"` ל-`plugin.json` של הפלאג-אין, ובכל שחרור העלה את המספר (1.0.1, 1.1.0 וכו'). חשוב: אל תגדיר `version` גם ב-`plugin.json` וגם ברשומת ה-marketplace, כי הערך ב-`plugin.json` תמיד גובר.
+הבדל חשוב בין שני המנגנונים:
+- **Claude Desktop (Cowork)** לוקח את **המצב הנוכחי של ה-repo** בכל סנכרון (השוואת commit אחרון
+  מול אחרון-שסונכרן), ולכן **לא** מצריך העלאת `version` כדי לקבל שינוי — מה שמפעיל סנכרון הוא
+  **מיזוג PR** (או לחיצת "Update").
+- **Claude Code (CLI)** מכבד את שדה ה-`version`: אם הוא מוגדר ולא עלה, המשתמש לא יקבל את
+  השינוי גם אחרי `marketplace update`. לכן ההקפדה להעלות `version` בכל שינוי נשמרת.
