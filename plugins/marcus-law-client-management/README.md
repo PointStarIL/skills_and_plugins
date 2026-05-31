@@ -4,6 +4,6 @@
 
 ## סקיילים בחבילה
 
-- legal-aid-client-organizer
+- organize-client-folder — ניתוח, מיון וסיכום מסמכי לקוח מהסיוע המשפטי
 
 Chaim Marcus, Marcus Law (marcus-law.co.il)
