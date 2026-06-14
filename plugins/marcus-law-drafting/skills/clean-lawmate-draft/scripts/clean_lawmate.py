@@ -148,6 +148,19 @@ def clean_text(t: str) -> str:
     t = re.sub(r'\s+([.,;:])', r'\1', t)
     t = re.sub(r'\(\s+', '(', t)
     t = re.sub(r'\s+\)', ')', t)
+
+    # 9. Final residue cleanup — runs AFTER all reference/citation removals so
+    #    it catches the broken punctuation they leave behind.
+    # 9a. Committee number: law-mate sometimes leaves the committee id inline,
+    #     e.g. "(מספר ועדה: NA-82974-4100)". We only want the convening date,
+    #     not the number, so drop the whole parenthetical.
+    t = re.sub(r'\s*\(מספר\s*ועדה:?[^)]*\)', '', t)
+    # 9b. Orphaned commas: removing a bracketed reference that followed a comma
+    #     (e.g. "...נוספת, [תיק-12-...pdf].") leaves a broken "...נוספת,." or
+    #     doubled "...החיים,,." — clean them up.
+    t = re.sub(r',\s*,+', ',', t)            # doubled commas -> single comma
+    t = re.sub(r'\s*,(\s*[.;:])', r'\1', t)  # comma before . ; : -> drop comma
+    t = re.sub(r'\s{2,}', ' ', t)            # collapse double spaces
     return t.strip()
 
 
