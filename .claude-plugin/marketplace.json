@@ -13,32 +13,89 @@
       "source": "./plugins/marcus-law-appeal-committee",
       "description": "חבילת ועדת ערר לתכנון ובנייה: חילוץ טענות וארגון תיקי ערר, וכתיבה/ארגון/אימות/ביקורת של החלטות ועדת הערר.",
       "category": "legal",
-      "tags": ["legal", "hebrew", "appeals", "decisions", "betterment-levy", "licensing", "planning-and-building"],
-      "author": { "name": "Chaim Marcus", "email": "chaim@marcus-law.co.il" }
+      "tags": [
+        "legal",
+        "hebrew",
+        "appeals",
+        "decisions",
+        "betterment-levy",
+        "licensing",
+        "planning-and-building"
+      ],
+      "author": {
+        "name": "Chaim Marcus",
+        "email": "chaim@marcus-law.co.il"
+      }
     },
     {
       "name": "marcus-law-content",
       "source": "./plugins/marcus-law-content",
       "description": "חבילת תוכן: מצגות משפטיות בעברית, כתיבת מאמרים, ואינטגרציה עם NotebookLM.",
       "category": "legal",
-      "tags": ["legal", "hebrew", "content", "pptx", "notebooklm"],
-      "author": { "name": "Chaim Marcus", "email": "chaim@marcus-law.co.il" }
+      "tags": [
+        "legal",
+        "hebrew",
+        "content",
+        "pptx",
+        "notebooklm"
+      ],
+      "author": {
+        "name": "Chaim Marcus",
+        "email": "chaim@marcus-law.co.il"
+      }
     },
     {
       "name": "marcus-law-client-management",
       "source": "./plugins/marcus-law-client-management",
       "description": "חבילת ניהול לקוחות: ארגון תיקי לקוחות לסיוע משפטי.",
       "category": "legal",
-      "tags": ["legal", "hebrew", "clients", "legal-aid"],
-      "author": { "name": "Chaim Marcus", "email": "chaim@marcus-law.co.il" }
+      "tags": [
+        "legal",
+        "hebrew",
+        "clients",
+        "legal-aid"
+      ],
+      "author": {
+        "name": "Chaim Marcus",
+        "email": "chaim@marcus-law.co.il"
+      }
     },
     {
       "name": "marcus-law-drafting",
       "source": "./plugins/marcus-law-drafting",
       "description": "חבילת ניסוח וייצור מסמכים: ניקוי טיוטות law-mate, יצירת מסמכי Word משפטיים בתבנית קבועה, עריכה מתקדמת, וכריכת נספחים ל-PDF.",
       "category": "legal",
-      "tags": ["legal", "hebrew", "drafting", "docx", "lawmate", "appendix"],
-      "author": { "name": "Chaim Marcus", "email": "chaim@marcus-law.co.il" }
+      "tags": [
+        "legal",
+        "hebrew",
+        "drafting",
+        "docx",
+        "lawmate",
+        "appendix"
+      ],
+      "author": {
+        "name": "Chaim Marcus",
+        "email": "chaim@marcus-law.co.il"
+      }
+    },
+    {
+      "name": "marcus-law-privacy",
+      "source": "./plugins/marcus-law-privacy",
+      "description": "חבילת פרטיות: OCR מקומי של תיקיות מסמכים והשחרה בלתי-הפיכה של פרטים מזהים (זיהוי דרך Gemma מקומי ב-LAN עם fallback ל-regex, שער אנושי) לקראת ניתוח במודלי שפה חיצוניים.",
+      "category": "legal",
+      "tags": [
+        "legal",
+        "hebrew",
+        "privacy",
+        "ocr",
+        "redaction",
+        "local",
+        "gemma"
+      ],
+      "author": {
+        "name": "Chaim Marcus",
+        "email": "chaim@marcus-law.co.il"
+      }
     }
   ]
 }
