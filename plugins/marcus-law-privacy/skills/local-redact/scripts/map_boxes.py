@@ -58,6 +58,12 @@ def read_terms(path):
     return out
 
 
+def _builtin_allowlist():
+    """רשימת היתר מובנית (מספרים ציבוריים) — references/public_allowlist.txt."""
+    p = os.path.join(os.path.dirname(__file__), "..", "references", "public_allowlist.txt")
+    return read_terms(os.path.abspath(p))
+
+
 def _line_string(line):
     """מחזיר (text, spans) — מחרוזת השורה וטווחי התווים של כל מילה."""
     parts = []
@@ -146,7 +152,7 @@ def map_document(out_dir, doc, engine="both", names=None, allowlist=None,
     rows = read_tsv(tsv_path)
     pages = rows_by_page(rows)
     names = names or []
-    allowlist = allowlist or []
+    allowlist = (allowlist or []) + _builtin_allowlist()
 
     use_gemma = engine in ("gemma", "both")
     use_regex = engine in ("regex", "both")
@@ -213,14 +219,32 @@ def map_document(out_dir, doc, engine="both", names=None, allowlist=None,
             for it in items:
                 counts[it["category"]] = counts.get(it["category"], 0) + 1
 
+    # ביקורת פערי-מיפוי: ערכים מזהים שזוהו (Gemma/רשימת שמות) אך לא אותרו בשום עמוד.
+    mapped_vals = {normalize_heb(str(b["value"]))
+                   for boxes in plan_pages.values() for b in boxes}
+    intended = {}
+    if use_gemma:
+        for ents in entities.values():
+            for e in ents:
+                if e.get("type") in ("name", "id", "address", "account"):
+                    t = str(e.get("text", "")).strip()
+                    if t:
+                        intended[normalize_heb(t)] = t
+    for term in (names or []):
+        t = str(term).strip()
+        if t:
+            intended[normalize_heb(t)] = t
+    unmapped = sorted({v for k, v in intended.items()
+                       if k and len(k) >= 4 and k not in mapped_vals})
+
     plan = {"key": doc["key"], "filename": doc["filename"],
-            "engine": engine, "pages": plan_pages}
+            "engine": engine, "pages": plan_pages, "unmapped": unmapped}
     with open(os.path.join(doc_dir, "redaction_plan.json"), "w", encoding="utf-8") as f:
         json.dump(plan, f, ensure_ascii=False, indent=2)
 
     total = sum(counts.values())
     return {"total": total, "by_category": counts,
-            "pages_with_redactions": len(plan_pages)}
+            "pages_with_redactions": len(plan_pages), "unmapped": unmapped}
 
 
 def load_manifest(out_dir):
