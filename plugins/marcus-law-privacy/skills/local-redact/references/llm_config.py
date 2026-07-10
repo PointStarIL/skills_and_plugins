@@ -22,7 +22,11 @@ REQUEST_TIMEOUT = int(os.environ.get("GEMMA_TIMEOUT", "120"))
 
 def _load_dotenv():
     """טוען .env מקומי אם קיים (תיקיית העבודה או תיקיית הפרויקט), בלי תלות חיצונית.
-    לא דורס משתני סביבה שכבר מוגדרים."""
+    לא דורס משתני סביבה שכבר מוגדרים.
+
+    סדר עדיפות (הראשון שנמצא זוכה, ומשתנה סביבה קיים גובר על כולם):
+    .env בתיקיית העבודה → עד 4 רמות מעלה → ~/.lmstudio.env (גלובלי, לכל הפרויקטים).
+    הקובץ הגלובלי נקרא תמיד מכל תיקיית עבודה — הפתרון האמין ל'כל הפרויקטים'."""
     candidates = []
     cwd = os.getcwd()
     candidates.append(os.path.join(cwd, ".env"))
@@ -33,6 +37,8 @@ def _load_dotenv():
         if not d:
             break
         candidates.append(os.path.join(d, ".env"))
+    # קובץ גלובלי קבוע בבית המשתמש — נקרא מכל מקום, לכל הפרויקטים (עדיפות נמוכה מ-.env של הפרויקט)
+    candidates.append(os.path.join(os.path.expanduser("~"), ".lmstudio.env"))
 
     for path in candidates:
         if not os.path.isfile(path):
