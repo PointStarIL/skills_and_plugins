@@ -18,6 +18,7 @@ import argparse
 
 from _common import (
     read_tsv, rows_by_page, group_lines, find_entity_boxes, _bbox, eprint,
+    normalize_heb,
 )
 
 # ---- תבניות regex (מנוע ה-fallback) ----
@@ -28,7 +29,9 @@ CREDIT_RE = re.compile(r"\b\d{4}[-\s]\d{4}[-\s]\d{4}[-\s]\d{2,4}\b")
 PLATE_RE = re.compile(r"\b\d{2,3}-\d{2,3}-\d{2,3}\b")
 DATE_RE = re.compile(r"\b\d{1,2}[./]\d{1,2}[./]\d{2,4}\b")
 ID_CANDIDATE_RE = re.compile(r"\d{5,9}")
-ID_LABEL_RE = re.compile(r'(ת[.\s"]?ז|תעודת\s*זהות|מספר\s*זהות|ז\.ת)')
+# תוויות ת"ז — בודקים נוכחות מילת-מפתח בלבד (עמיד לכיוון RTL: "מספר זהות" מופיע
+# בשורה המשוחזרת כ-"זהות מספר", לכן לא מסתמכים על סדר המילים).
+ID_LABEL_RE = re.compile(r'(זהות|תעודת|ת["״\'.\s]?ז|ז["״\'.\s]?ת)')
 
 
 def israeli_id_valid(num):
@@ -99,12 +102,14 @@ def regex_boxes(lines, enable_dates=False):
             for m in DATE_RE.finditer(text):
                 add(_rows_in_span(line, spans, m.start(), m.end()), "DATE", m.group())
 
-        # ת"ז — עם בדיקת ספרת ביקורת או תווית סמוכה
+        # ת"ז — ספרת ביקורת (8-9 ספרות, כולל בלי אפס מוביל) או תווית סמוכה משני הצדדים
         for m in ID_CANDIDATE_RE.finditer(text):
             digits = m.group()
-            preceding = text[max(0, m.start() - 14):m.start()]
-            has_label = bool(ID_LABEL_RE.search(preceding))
-            if (len(digits) == 9 and israeli_id_valid(digits)) or has_label:
+            a, b = max(0, m.start() - 18), min(len(text), m.end() + 18)
+            context = text[a:m.start()] + " " + text[m.end():b]  # לפני ואחרי (RTL)
+            has_label = bool(ID_LABEL_RE.search(context))
+            valid_id = len(digits) in (8, 9) and israeli_id_valid(digits)
+            if valid_id or has_label:
                 add(_rows_in_span(line, spans, m.start(), m.end()), "ISRAELI_ID", digits)
 
     return results
@@ -155,6 +160,20 @@ def map_document(out_dir, doc, engine="both", names=None, allowlist=None,
         else:
             eprint(f"  [אזהרה] אין entities.json ל-{doc['filename']} — דילוג על Gemma")
 
+    # פרופגציה בין-עמודית: זהות הלקוח שזוהתה בעמוד אחד (שם/ת"ז/כתובת/חשבון)
+    # תוחל על כל העמודים — מכסה מקרים שבהם Gemma פספס מופע בעמוד מסוים.
+    propagated = []
+    if use_gemma:
+        seen = set()
+        for ents in entities.values():
+            for e in ents:
+                if e.get("type") in ("name", "id", "address", "account"):
+                    t = (e.get("text") or "").strip()
+                    k = normalize_heb(t)
+                    if t and len(k) >= 4 and k not in seen:
+                        seen.add(k)
+                        propagated.append((t, e.get("type", "other").upper()))
+
     plan_pages = {}
     counts = {}
 
@@ -167,6 +186,10 @@ def map_document(out_dir, doc, engine="both", names=None, allowlist=None,
                 for box in find_entity_boxes(ent["text"], lines, threshold):
                     items.append({**box, "category": ent.get("type", "other").upper(),
                                   "value": ent["text"]})
+            # החלת הזהות הגלובלית על עמוד זה (dedupe בהמשך מונע כפילות)
+            for term, cat in propagated:
+                for box in find_entity_boxes(term, lines, threshold):
+                    items.append({**box, "category": cat, "value": term})
 
         if use_regex:
             for box, cat, val in regex_boxes(lines, enable_dates=enable_dates):

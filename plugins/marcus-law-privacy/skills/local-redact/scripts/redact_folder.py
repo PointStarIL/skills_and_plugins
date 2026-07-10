@@ -21,6 +21,7 @@ import detect_entities as detect_mod
 import map_boxes as map_mod
 import review as review_mod
 import burn_redactions as burn_mod
+import verify_redaction as verify_mod
 
 
 def load_manifest(out_dir):
@@ -114,6 +115,19 @@ def main():
                 burn_mod.burn_document(out_dir, d, root, pad=args.pad)
             except Exception as e:  # noqa: BLE001
                 eprint(f"  [שגיאה] burn {d['filename']}: {e}")
+
+        # --- אימות אחרי צריבה: ודא שהערכים שזוהו אינם קריאים בפלט ---
+        eprint("== אימות שאריות ==")
+        for d in docs:
+            try:
+                res = verify_mod.verify_document(out_dir, d).get("residuals", [])
+                if res:
+                    eprint(f"  [אזהרה] {d['filename']}: {len(res)} שאריות אפשריות — "
+                           + ", ".join(f"עמ' {r['page']}:{r['value']}" for r in res[:5]))
+                else:
+                    eprint(f"  [OK] {d['filename']}: אימות נקי (0 שאריות).")
+            except Exception as e:  # noqa: BLE001
+                eprint(f"  [שגיאה] verify {d['filename']}: {e}")
 
     # --- סיכום (הפלט היחיד ל-stdout) ---
     summary = {
