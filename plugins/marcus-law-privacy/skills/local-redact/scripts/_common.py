@@ -144,14 +144,19 @@ def find_entity_boxes(entity_text, lines, threshold=0.82):
                 boxes.append(_bbox([line[i]]))
                 i += 1
                 continue
-            # התאמת רצף מילים סמוכות (שם מלא / כתובת / מספר מפוצל)
+            # התאמת רצף מילים סמוכות (שם מלא / כתובת / מספר מפוצל).
+            # עברית נקראת ימין->שמאל אך המילים ממוינות לפי left עולה, לכן רצף
+            # רב-מילים מופיע במערך בסדר הפוך. משווים את היעד לשני הסדרים.
             matched = False
-            acc = ""
             for j in range(i, min(i + 8, n)):
-                acc += norms[j]
+                seg = norms[i:j + 1]
+                acc = "".join(seg)
+                acc_rev = "".join(reversed(seg))
                 if len(acc) < len(target) * 0.6:
                     continue
-                if acc == target or similar(acc, target) >= threshold:
+                if (acc == target or acc_rev == target
+                        or similar(acc, target) >= threshold
+                        or similar(acc_rev, target) >= threshold):
                     boxes.append(_bbox(line[i:j + 1]))
                     i = j + 1
                     matched = True
@@ -188,17 +193,36 @@ def draw_boxes(img, boxes, pad=2, color=0, filled=True):
     return out
 
 
-def images_to_pdf(image_paths, out_pdf):
-    """בונה PDF שכל עמוד בו הוא תמונה (משוטח, ללא שכבת טקסט)."""
+def images_to_pdf(image_paths, out_pdf, jpeg_quality=80, max_long_side=2400):
+    """בונה PDF שכל עמוד בו הוא תמונה מכווצת (JPEG), משוטח, ללא שכבת טקסט.
+
+    ממיר כל עמוד ל-JPEG ומקטין רזולוציה כדי לשמור על גודל קובץ סביר —
+    הטמעת pixmap גולמי מנפחת את ה-PDF (עמוד 300DPI גולמי ~8-9MB). JPEG
+    באיכות 80 ורוחב מרבי ~2400px (~200DPI ל-A4) שומר על קריאוּת ומקטין פי עשרות.
+    """
     import fitz
+    import cv2
     doc = fitz.open()
     try:
         for p in image_paths:
-            pix = fitz.Pixmap(p)
-            rect = fitz.Rect(0, 0, pix.width, pix.height)
-            page = doc.new_page(width=pix.width, height=pix.height)
-            page.insert_image(rect, pixmap=pix)
-        doc.save(out_pdf)
+            img = imread_unicode(p, cv2.IMREAD_GRAYSCALE)
+            if img is None:
+                continue
+            h, w = img.shape[:2]
+            long_side = max(h, w)
+            if max_long_side and long_side > max_long_side:
+                scale = max_long_side / float(long_side)
+                img = cv2.resize(img, (max(1, int(w * scale)), max(1, int(h * scale))),
+                                 interpolation=cv2.INTER_AREA)
+                h, w = img.shape[:2]
+            ok, buf = cv2.imencode(".jpg", img,
+                                   [cv2.IMWRITE_JPEG_QUALITY, int(jpeg_quality)])
+            if not ok:
+                continue
+            rect = fitz.Rect(0, 0, w, h)
+            page = doc.new_page(width=w, height=h)
+            page.insert_image(rect, stream=buf.tobytes())
+        doc.save(out_pdf, garbage=4, deflate=True)
     finally:
         doc.close()
 
@@ -232,8 +256,12 @@ def list_models():
         return False, {"url": url, "error": str(e)}
 
 
-def chat_completion(system_prompt, user_content, json_mode=True):
-    """POST /v1/chat/completions. מחזיר את תוכן ההודעה (str)."""
+def chat_completion(system_prompt, user_content, json_mode=True, schema=None):
+    """POST /v1/chat/completions. מחזיר את תוכן ההודעה (str).
+
+    schema: אם ניתן, נאכף פלט JSON תואם-סכימה (response_format=json_schema).
+    הערה: שרתי LM Studio מקבלים 'json_schema' או 'text' בלבד — לא 'json_object'.
+    """
     import urllib.request
     cfg = _import_llm_config()
     url = cfg.BASE_URL.rstrip("/") + "/chat/completions"
@@ -245,8 +273,13 @@ def chat_completion(system_prompt, user_content, json_mode=True):
         ],
         "temperature": 0,
     }
-    if json_mode:
-        body["response_format"] = {"type": "json_object"}
+    if schema is not None:
+        body["response_format"] = {
+            "type": "json_schema",
+            "json_schema": {"name": "structured_output", "strict": True, "schema": schema},
+        }
+    elif json_mode:
+        body["response_format"] = {"type": "text"}
     data = json.dumps(body).encode("utf-8")
     req = urllib.request.Request(url, data=data, method="POST", headers={
         "Content-Type": "application/json",
