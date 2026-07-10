@@ -17,15 +17,37 @@ import argparse
 from _common import chat_completion, extract_json, eprint
 
 SYSTEM_PROMPT = (
-    "אתה מנוע לזיהוי פרטים מזהים (PII) במסמכים משפטיים בעברית. "
-    "קבל טקסט של עמוד אחד, והחזר אך ורק את הפרטים המזהים שמופיעים בו מילולית. "
+    "אתה מנוע לזיהוי פרטים מזהים של הלקוח/התובע/העורר בלבד במסמכים משפטיים בעברית. "
+    "קבל טקסט של עמוד אחד, והחזר אך ורק פרטים מזהים ששייכים ללקוח/לתובע/לעורר עצמו "
+    "(או לבן/בת זוגו או ילדיו) ומופיעים בטקסט מילולית: "
+    "שם מלא, מספר תעודת זהות/דרכון, כתובת מגורים, מספר טלפון פרטי, "
+    "דוא\"ל פרטי, מספר חשבון בנק/IBAN/כרטיס אשראי. "
+    "אל תסמן: שמות של חברי ועדה, רופאים, מומחים, פקידים, שופטים או עורכי דין; "
+    "מספרי טלפון/פקס או כתובות אתר של גופים ציבוריים (ביטוח לאומי, בתי דין, לשכות); "
+    "תאריכים; סכומי כסף או קצבה; מספרי תיק/ועדה/הליך; מזהי חתימה דיגיטלית; אחוזי נכות. "
     "החזר JSON תקין במבנה: {\"entities\":[{\"text\":\"...\",\"type\":\"...\"}]}. "
-    "ערכי type אפשריים: name (שם אדם/חברה), id (מספר זהות/דרכון), phone (טלפון), "
-    "email (דוא\"ל), address (כתובת), account (חשבון בנק/IBAN/כרטיס אשראי), "
-    "case_number (מספר תיק/הליך), other. "
+    "ערכי type אפשריים: name, id, phone, email, address, account. "
     "אל תמציא ערכים שאינם בטקסט. אל תוסיף הסברים. "
-    "אם אין פרטים מזהים, החזר {\"entities\":[]}."
+    "אם אין פרטים מזהים של הלקוח, החזר {\"entities\":[]}."
 )
+
+ENTITIES_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "entities": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "text": {"type": "string"},
+                    "type": {"type": "string"},
+                },
+                "required": ["text", "type"],
+            },
+        }
+    },
+    "required": ["entities"],
+}
 
 
 def load_manifest(out_dir):
@@ -41,7 +63,7 @@ def detect_page(page_text, retries=2):
     last_err = None
     for attempt in range(retries + 1):
         try:
-            content = chat_completion(SYSTEM_PROMPT, page_text, json_mode=True)
+            content = chat_completion(SYSTEM_PROMPT, page_text, schema=ENTITIES_SCHEMA)
         except Exception as e:  # noqa: BLE001
             last_err = e
             continue

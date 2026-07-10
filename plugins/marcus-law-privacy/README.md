@@ -23,6 +23,34 @@
 
 **זיהוי הישויות בהשחרה** נעשה על ידי Gemma מקומי (LM Studio, endpoint תואם-OpenAI ב-LAN); regex + רשימת ישויות הם fallback. הכול מקומי — הבקשה הולכת לרשת הפנימית, לא לענן. הגדרת החיבור: `skills/local-redact/references/llm_config.py`. הטוקן ב-`.env`/משתנה סביבה `LMSTUDIO_API_KEY`, לעולם לא בקוד ולא ב-git.
 
+## הגדרת הטוקן (LMSTUDIO_API_KEY)
+
+השרת **אוכף** את הטוקן — בלי טוקן נכון כל בקשה מקבלת `401`, וההשחרה נופלת בשקט ל-regex בלבד (שלא מזהה שמות בעברית). `llm_config.get_api_key()` קורא את הטוקן **רק** ממשתנה סביבה `LMSTUDIO_API_KEY` או מקובץ `.env`, ולעולם **לא** מ-`.env.example`. יש שתי דרכים להגדיר — לרוב כדאי את **שתיהן**:
+
+### דרך א' — משתנה סביבה קבוע (עובד בכל הפרויקטים) ✅ מומלץ
+`get_api_key()` מחפש קודם את משתנה הסביבה, ללא תלות בתיקיית העבודה. הגדרה חד-פעמית ברמת המשתמש ב-Windows:
+
+```powershell
+setx LMSTUDIO_API_KEY "sk-lm-שלך"
+```
+
+חל על **כל** תהליך חדש בכל מקום — כולל קבצים מחוץ לתיקיית פרויקט. חלונות שכבר פתוחים צריכים הפעלה מחדש כדי לקלוט אותו. (חיסרון: לא נוסע אוטומטית למחשבים אחרים.)
+
+### דרך ב' — קובץ `.env` (נוסע עם הפרויקט בסנכרון)
+`_load_dotenv()` מחפש `.env` החל מתיקיית העבודה וכלפי מעלה עד 4 רמות. העתק את `skills/local-redact/.env.example` ל-`.env` בשורש הפרויקט ומלא את הטוקן:
+
+```
+LMSTUDIO_API_KEY=sk-lm-שלך
+```
+
+⚠️ נמצא **רק** כשמריצים על קבצים בתוך עץ הפרויקט. על תיקיות מחוץ לפרויקט (למשל `Documents\בדיקה`) — משתנה הסביבה מדרך א' הוא שמכסה. אל תעלה `.env` ל-git (רק `.env.example`, עם placeholder בלבד).
+
+### אימות
+```
+python skills/local-redact/scripts/preflight_gemma.py
+```
+`[OK] Gemma זמין` = הטוקן נקלט. `HTTP Error 401` = הטוקן לא הגיע (בדוק env var / מיקום `.env`).
+
 ## התקנה
 
 ראה `skills/local-ocr-folder/INSTALL.md`. בתמצית: Tesseract for Windows (UB Mannheim, עם `heb`) + Python עם החבילות `pymupdf pytesseract pillow opencv-python numpy`.
