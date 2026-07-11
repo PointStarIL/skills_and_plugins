@@ -36,6 +36,9 @@ from pathlib import Path
 from docx import Document
 from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
+from docx.shared import Cm
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.enum.table import WD_TABLE_ALIGNMENT
 
 
 # Inline bold markers: wrap a span in BOLD_OPEN..BOLD_CLOSE and it renders bold.
@@ -184,6 +187,100 @@ def add_plain(doc, text):
     set_numbering(p, EXHIBIT_NUMID)   # numId=0 → no marker
     add_formatted_text(p, text)
     return p
+
+
+# ----- RTL tables ------------------------------------------------------
+#
+# RTL table principle (mirrors the run-level RTL principle above):
+#   1. w:bidiVisual on the table   -> columns run right-to-left (first
+#      column sits on the right).
+#   2. w:bidi on each cell paragraph -> the cell's text flows/aligns right.
+#   3. text is written via add_run  -> every run gets w:rtl and the David
+#      (cs) font from the style.
+#   4. w:tblLayout=fixed + Cm widths -> stable column widths (otherwise the
+#      description column gets squeezed).
+#
+# OOXML is order-sensitive: children of tblPr/pPr must appear in schema
+# order or Word silently drops them. _insert_ordered places an element at
+# its correct position regardless of what is already there.
+
+_TBLPR_ORDER = [qn('w:' + n) for n in (
+    'tblStyle', 'tblpPr', 'tblOverlap', 'bidiVisual', 'tblStyleRowBandSize',
+    'tblStyleColBandSize', 'tblW', 'jc', 'tblCellSpacing', 'tblInd',
+    'tblBorders', 'shd', 'tblLayout', 'tblCellMar', 'tblLook', 'tblCaption',
+    'tblDescription',
+)]
+
+_PPR_ORDER = [qn('w:' + n) for n in (
+    'pStyle', 'keepNext', 'keepLines', 'pageBreakBefore', 'framePr',
+    'widowControl', 'numPr', 'suppressLineNumbers', 'pBdr', 'shd', 'tabs',
+    'suppressAutoHyphens', 'kinsoku', 'wordWrap', 'overflowPunct',
+    'topLinePunct', 'autoSpaceDE', 'autoSpaceDN', 'bidi', 'adjustRightInd',
+    'snapToGrid', 'spacing', 'ind', 'contextualSpacing', 'mirrorIndents',
+    'suppressOverlap', 'jc', 'textDirection', 'textAlignment',
+    'textboxTightWrap', 'outlineLvl', 'divId', 'cnfStyle', 'rPr', 'sectPr',
+    'pPrChange',
+)]
+
+
+def _insert_ordered(parent, child, order):
+    """Insert child into parent at its schema-correct position (per order)."""
+    pos = order.index(child.tag)
+    for existing in parent:
+        try:
+            if order.index(existing.tag) > pos:
+                existing.addprevious(child)
+                return child
+        except ValueError:
+            continue  # unknown/foreign element - skip it
+    parent.append(child)
+    return child
+
+
+def _set_cell_rtl(cell, text, bold=False):
+    """Write text into a single cell with correct RTL direction (paragraph + run)."""
+    p = cell.paragraphs[0]
+    p.clear()  # drop any existing runs; NOT p.text="" which leaves an empty run
+    _insert_ordered(p._p.get_or_add_pPr(), OxmlElement('w:bidi'), _PPR_ORDER)
+    p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+    if bold:
+        add_run(p, text.replace(BOLD_OPEN, '').replace(BOLD_CLOSE, ''), bold=True)
+    else:
+        add_formatted_text(p, text)
+
+
+def add_table(doc, headers, rows, widths=None, header_bold=True, style='Table Grid'):
+    """Add an RTL table to the document.
+
+    headers      : list of column-header strings.
+    rows         : list of rows, each a list of cell strings.
+    widths       : optional column widths in cm. The first entry is the
+                   right-most column (columns run right-to-left).
+    header_bold  : whether the header row is bold.
+    style        : table style (default: grid lines).
+
+    Returns the table object for further tweaks.
+    """
+    n = len(headers)
+    t = doc.add_table(rows=1, cols=n)
+    t.style = style
+    t.alignment = WD_TABLE_ALIGNMENT.RIGHT
+    t.autofit = False                                                 # emits tblLayout=fixed
+    tblPr = t._tbl.tblPr
+    _insert_ordered(tblPr, OxmlElement('w:bidiVisual'), _TBLPR_ORDER)  # RTL column order
+
+    for i, h in enumerate(headers):
+        _set_cell_rtl(t.rows[0].cells[i], h, bold=header_bold)
+    for row in rows:
+        cells = t.add_row().cells
+        for i, val in enumerate(row):
+            _set_cell_rtl(cells[i], str(val))
+
+    if widths:
+        for r in t.rows:
+            for i, w in enumerate(widths):
+                r.cells[i].width = Cm(w)
+    return t
 
 
 def save(doc, output_path):
