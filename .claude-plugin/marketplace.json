@@ -96,6 +96,16 @@
         "name": "Chaim Marcus",
         "email": "chaim@marcus-law.co.il"
       }
+    },
+    {
+      "name": "party-claims-extractor",
+      "source": "./plugins/party-claims-extractor",
+      "description": "חילוץ וסיווג טענות הצדדים מכתבי ערר/תשובה מקומיים → מסמך Word (תמצית מובנית ונייטרלית). עצמאי, ללא legal-ai.",
+      "category": "legal",
+      "author": {
+        "name": "Chaim Marcus",
+        "email": "chaim@marcus-law.co.il"
+      }
     }
   ]
 }
