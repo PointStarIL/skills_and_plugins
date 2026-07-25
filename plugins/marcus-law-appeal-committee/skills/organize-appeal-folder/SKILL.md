@@ -1,7 +1,7 @@
 ---
 name: organize-appeal-folder
-description: "מארגן אוטומטית תיקיית ערר (היטל השבחה / רישוי): מזהה סוגי מסמכים, משנה שמות לפי תוכן, יוצר תתי-תיקיות, מחלץ נספחים מכתבי טענות, מפצל PDF, ומפיק מסמך סיכום. הפעל כאשר: יש תיקייה עם קובצי PDF של ערר לארגן/למיין, או קבצים בשמות לא ברורים (scan001.pdf); 'ארגן תיק ערר', 'סדר לי את התיק', 'organize appeal folder'. עובד מ-5 ועד 50+ קבצים."
-version: "1.2.0"
+description: "מארגן אוטומטית תיקיית ערר (היטל השבחה / רישוי): מזהה סוגי מסמכים, מבצע OCR למסמכים סרוקים (Tesseract עברית עם נפילה ל-Mistral OCR), משנה שמות לפי תוכן, יוצר תתי-תיקיות, מחלץ נספחים מכתבי טענות, מפצל PDF, ומפיק מסמך סיכום. הפעל כאשר: יש תיקייה עם קובצי PDF של ערר לארגן/למיין, או קבצים בשמות לא ברורים (scan001.pdf); 'ארגן תיק ערר', 'סדר לי את התיק', 'organize appeal folder'. עובד מ-5 ועד 50+ קבצים."
+version: "1.3.0"
 ---
 
 # Appeal Case Organizer, ארגון תיקי ערר
@@ -15,9 +15,11 @@ version: "1.2.0"
 
 התהליך מורכב מ-3 שלבים עיקריים שמבוצעים ברצף:
 
-1. **זיהוי ומיון**, קריאת כל PDF, זיהוי סוג המסמך, שינוי שם לפי תוכן+תאריך, העברה לתת-תיקייה מתאימה
+1. **זיהוי ומיון**, קריאת כל PDF (כולל OCR למסמכים סרוקים), זיהוי סוג המסמך, שינוי שם לפי תוכן+תאריך, העברה לתת-תיקייה מתאימה
 2. **חילוץ נספחים ופיצול**, זיהוי נספחים מוטמעים בכתבי טענות, פיצול פיזי ל-PDF נפרדים
 3. **יצירת סיכום**, מסמך DOCX מסכם עם פירוט כל המסמכים, מיקומם ותוכנם
+
+> **מסמכים סרוקים:** חלק מקובצי הערר הם סריקות ללא שכבת טקסט. במקרים אלה יש להריץ OCR לפני הסיווג, ראה "OCR למסמכים סרוקים" בשלב 1.
 
 ---
 
@@ -35,9 +37,38 @@ version: "1.2.0"
 └── ניתוח מסמכים/       ← מסמכי סיכום ועבודה שהסקיל יוצר
 ```
 
+### OCR למסמכים סרוקים
+
+לפני הסיווג, ודא שיש טקסט קריא בכל PDF. מסמכים רבים בתיקי ערר הם סריקות ללא שכבת טקסט, ובלי OCR לא ניתן לסווג אותם, לחלץ תאריך או לזהות נספחים.
+
+**מתי להריץ OCR:** אם קריאת הקובץ עם הכלי Read מחזירה מעט טקסט או ג'יבריש, או אם `pdftotext` מחזיר עמוד ריק, המסמך סרוק. בדיקה מהירה:
+
+```bash
+pdftotext -f 1 -l 2 "file.pdf" - | wc -w   # מעט מילים => כנראה סרוק
+```
+
+**כיצד להריץ:** השתמש בסקריפט המצורף `scripts/ocr_with_fallback.py`. הוא מריץ קודם OCR מקומי (Tesseract עברית+אנגלית), ואם האיכות נמוכה מסף (ביטחון ממוצע, כמות טקסט, יחס תווים תקינים), נופל אוטומטית ל-API של Mistral OCR.
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/organize-appeal-folder/scripts/ocr_with_fallback.py" "file.pdf" --out "file.txt"
+```
+
+הסקריפט מדפיס ל-stderr באיזה מנוע נעשה שימוש (`tesseract` או `mistral`) ומדוע נפל. השתמש בטקסט שמתקבל לסיווג, לחילוץ התאריך ולזיהוי הנספחים.
+
+**מפתח Mistral (Infisical):** הסקריפט קורא את מפתח ה-API ושם המודל ממשתני סביבה. הסודות שמורים ב-Infisical תחת פרויקט `2c462576-b125-4279-b0ec-7220dbf51ccf`, סביבה `main`, נתיב `/services/mistral` (מפתחות `API_KEY` ו-`OCR_MODEL`, כרגע `mistral-ocr-4-0`). הרצה עם הזרקת הסודות בזמן ריצה דרך Infisical CLI:
+
+```bash
+infisical run --projectId=2c462576-b125-4279-b0ec-7220dbf51ccf --env=main --path=/services/mistral -- \
+  python3 "${CLAUDE_PLUGIN_ROOT}/skills/organize-appeal-folder/scripts/ocr_with_fallback.py" "file.pdf" --out "file.txt"
+```
+
+הסקריפט תומך גם בשמות `MISTRAL_API_KEY` / `MISTRAL_OCR_MODEL` אם מוגדרים ישירות.
+
+**דרישות:** חבילת השפה העברית ל-Tesseract (`tesseract-ocr-heb`), הספריות `pytesseract`, `pdf2image`, `requests`, ו-`poppler-utils`. הנפילה ל-Mistral דורשת גישה יוצאת לדומיין `api.mistral.ai`. אם אין גישה, הסקריפט מחזיר את תוצאת ה-OCR המקומית עם אזהרה.
+
 ### כיצד לזהות סוג מסמך
 
-קרא את 2-3 העמודים הראשונים של כל PDF באמצעות הכלי Read (עם pages parameter).
+קרא את 2-3 העמודים הראשונים של כל PDF באמצעות הכלי Read (עם pages parameter). למסמכים סרוקים, השתמש בטקסט שהתקבל מ-OCR (ראה למעלה).
 סווג לפי הכללים הבאים:
 
 **מסמכי ערר**, המסמכים המהותיים של התיק:
@@ -268,3 +299,8 @@ def split_pdf(source_path, output_folder, splits):
 - **מנוע hebrew-docx-engine** (חבילת `marcus-law-drafting`): לבניית מסמך הסיכום בעברית; `edit-legal-docx` למבנה משפטי
 - **כלי Read**: לקריאת תוכן PDF (עם פרמטר pages)
 - **כלי Bash**: להעברת קבצים ויצירת תיקיות
+- **OCR למסמכים סרוקים** (`scripts/ocr_with_fallback.py`):
+  - `tesseract-ocr` + חבילת השפה העברית `tesseract-ocr-heb`
+  - Python: `pytesseract`, `pdf2image`, `requests` (`pip install pytesseract pdf2image requests --break-system-packages`)
+  - `poppler-utils` (עבור `pdf2image` ו-`pdftotext`)
+  - נפילה ל-Mistral OCR: מפתח מ-Infisical (`/services/mistral`), גישה יוצאת ל-`api.mistral.ai`
