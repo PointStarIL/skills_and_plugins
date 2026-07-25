@@ -15,7 +15,11 @@ OCR עם נפילה אוטומטית ל-Mistral OCR API.
     print(result["engine_used"])   # 'tesseract' או 'mistral'
 
 או משורת הפקודה:
-    python3 ocr_with_fallback.py file.pdf [--out out.txt] [--force-mistral]
+    python3 ocr_with_fallback.py file.pdf [--out out.txt] [--force-mistral] [--page-markers]
+
+--page-markers מוסיף שורת "===== PAGE n =====" לפני כל עמוד. מומלץ תמיד:
+זה מה ש-export_ocr_text.py קורא כדי לבנות קובצי md עם סימון עמודים, וזה מה
+שמאפשר לחתוך טווח עמודים של נספח מתוך פלט של קובץ גדול.
 
 דרוש מפתח API:  משתנה סביבה  MISTRAL_API_KEY
 """
@@ -46,6 +50,9 @@ TESS_LANG = "heb+eng"
 MIN_MEAN_CONFIDENCE = 60.0   # ביטחון ממוצע של Tesseract (0-100)
 MIN_CHARS_PER_PAGE = 80      # מינימום תווים לעמוד (עמוד עם מעט טקסט חשוד)
 MIN_VALID_CHAR_RATIO = 0.75  # יחס מינימלי של תווים "תקינים" (עברית/לטינית/ספרות/פיסוק)
+
+# סמן עמוד; export_ocr_text.py מסתמך על הפורמט הזה
+PAGE_MARKER = "\n\n===== PAGE {n} =====\n"
 # -------------------------------------------
 
 # תווים נחשבים תקינים: עברית, לטינית, ספרות, רווח, פיסוק נפוץ, ניקוד
@@ -96,7 +103,7 @@ def tesseract_ocr(pdf_path: str, dpi: int = OCR_DPI, lang: str = TESS_LANG):
         "num_pages": n_pages,
         "total_chars": len(full_text.strip()),
     }
-    return full_text, metrics
+    return full_text, metrics, pages_text
 
 
 def assess_quality(metrics: dict):
@@ -143,8 +150,9 @@ def mistral_ocr(pdf_path: str, model: str = MISTRAL_MODEL):
     data = resp.json()
 
     pages = data.get("pages", [])
-    text = "\n\n".join(p.get("markdown", "") for p in pages)
-    return text, data
+    pages_text = [p.get("markdown", "") for p in pages]
+    text = "\n\n".join(pages_text)
+    return text, data, pages_text
 
 
 def ocr_pdf(pdf_path: str, force_mistral: bool = False, verbose: bool = True):
@@ -154,19 +162,20 @@ def ocr_pdf(pdf_path: str, force_mistral: bool = False, verbose: bool = True):
     """
     result = {
         "text": "",
+        "pages": [],
         "engine_used": None,
         "tesseract_metrics": None,
         "fallback_reasons": [],
     }
 
     if force_mistral:
-        text, _ = mistral_ocr(pdf_path)
-        result.update(text=text, engine_used="mistral",
+        text, _, pages = mistral_ocr(pdf_path)
+        result.update(text=text, pages=pages, engine_used="mistral",
                       fallback_reasons=["הופעל ידנית (force_mistral)"])
         return result
 
     # שלב 1 – OCR מקומי
-    tess_text, metrics = tesseract_ocr(pdf_path)
+    tess_text, metrics, tess_pages = tesseract_ocr(pdf_path)
     result["tesseract_metrics"] = metrics
     ok, reasons = assess_quality(metrics)
 
@@ -174,7 +183,7 @@ def ocr_pdf(pdf_path: str, force_mistral: bool = False, verbose: bool = True):
         print(f"[Tesseract] מדדים: {metrics}", file=sys.stderr)
 
     if ok:
-        result.update(text=tess_text, engine_used="tesseract")
+        result.update(text=tess_text, pages=tess_pages, engine_used="tesseract")
         if verbose:
             print("[OK] ה-OCR המקומי תקין — לא נדרשת נפילה ל-Mistral", file=sys.stderr)
         return result
@@ -184,13 +193,13 @@ def ocr_pdf(pdf_path: str, force_mistral: bool = False, verbose: bool = True):
     if verbose:
         print(f"[Fallback] נופל ל-Mistral בגלל: {'; '.join(reasons)}", file=sys.stderr)
     try:
-        mistral_text, _ = mistral_ocr(pdf_path)
-        result.update(text=mistral_text, engine_used="mistral")
+        mistral_text, _, mistral_pages = mistral_ocr(pdf_path)
+        result.update(text=mistral_text, pages=mistral_pages, engine_used="mistral")
     except Exception as e:
         # אם Mistral נכשל, מחזירים את התוצאה המקומית עם אזהרה
         if verbose:
             print(f"[שגיאה] Mistral נכשל ({e}) — מחזיר תוצאת Tesseract", file=sys.stderr)
-        result.update(text=tess_text, engine_used="tesseract",
+        result.update(text=tess_text, pages=tess_pages, engine_used="tesseract",
                       fallback_reasons=reasons + [f"Mistral נכשל: {e}"])
     return result
 
@@ -201,19 +210,27 @@ def main():
     ap.add_argument("--out", help="קובץ פלט לטקסט (ברירת מחדל: stdout)")
     ap.add_argument("--force-mistral", action="store_true",
                     help="דלג על OCR מקומי ולך ישר ל-Mistral")
+    ap.add_argument("--page-markers", action="store_true",
+                    help="הוסף '===== PAGE n =====' לפני כל עמוד (נדרש ל-export_ocr_text.py)")
     args = ap.parse_args()
 
     res = ocr_pdf(args.pdf, force_mistral=args.force_mistral)
+
+    out_text = res["text"]
+    if args.page_markers and res["pages"]:
+        out_text = "".join(PAGE_MARKER.format(n=i) + p
+                           for i, p in enumerate(res["pages"], 1))
+
     print(f"\n=== מנוע: {res['engine_used']} ===", file=sys.stderr)
     if res["fallback_reasons"]:
         print(f"=== סיבות נפילה: {res['fallback_reasons']} ===", file=sys.stderr)
 
     if args.out:
         with open(args.out, "w", encoding="utf-8") as f:
-            f.write(res["text"])
-        print(f"נשמר: {args.out}", file=sys.stderr)
+            f.write(out_text)
+        print(f"נשמר: {args.out} ({len(res['pages'])} עמודים)", file=sys.stderr)
     else:
-        print(res["text"])
+        print(out_text)
 
 
 if __name__ == "__main__":
