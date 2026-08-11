@@ -5,7 +5,7 @@
     "email": "chaim@marcus-law.co.il"
   },
   "metadata": {
-    "description": "Marketplace פרטי של משרד מרקוס לפלאג-אינים וסקיילים משפטיים בעברית"
+    "description": "Marketplace פרטי של משרד עורכי דין חיים מרכוס לפלאג-אינים וסקיילים משפטיים בעברית"
   },
   "plugins": [
     {
@@ -63,14 +63,13 @@
     {
       "name": "marcus-law-drafting",
       "source": "./plugins/marcus-law-drafting",
-      "description": "חבילת ניסוח וייצור מסמכים: ניקוי טיוטות law-mate, יצירת מסמכי Word משפטיים בתבנית קבועה, עריכה מתקדמת, וכריכת נספחים ל-PDF.",
+      "description": "חבילת ניסוח וייצור מסמכים: יצירת מסמכי Word משפטיים בתבנית קבועה (מנוע ה-DOCX היחיד), עריכה מתקדמת, וכריכת נספחים ל-PDF.",
       "category": "legal",
       "tags": [
         "legal",
         "hebrew",
         "drafting",
         "docx",
-        "lawmate",
         "appendix"
       ],
       "author": {

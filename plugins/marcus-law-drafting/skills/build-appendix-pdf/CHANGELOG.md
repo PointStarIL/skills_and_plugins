@@ -1,4 +1,21 @@
+> **ארכיון — תיעוד שקדם לנקודת האפס (1.0.0, 2026-08-11).**
+> מספרי הגרסה בקובץ זה הם מספור ישן שאינו בשימוש עוד, והם אינם גרסת החבילה.
+> התיעוד השוטף מתנהל ב-CHANGELOG של החבילה: [../../CHANGELOG.md](../../CHANGELOG.md).
+> הקובץ נשמר בשל הפירוט הטכני שבו.
+
 # Changelog
+
+## v3.1 - Bundled portable fonts
+
+Moved here from the body of `SKILL.md` at the 1.0.0 reset, so the skill body carries
+no version history of its own.
+
+- A `fonts/` folder ships inside the skill containing the user's licensed Microsoft Word
+  TTFs (David, Times New Roman, Arial). On first run on any machine,
+  `ensure_fonts_installed()` auto-copies them to `~/.fonts` and refreshes `fc-cache`;
+  subsequent runs are no-ops.
+- Result: the skill is fully portable - drop the folder onto a fresh Linux sandbox and
+  binding works without any manual setup. Established as Iron Rule 5.
 
 ## v3.0.0 - Word fidelity + AI typography ban (2026-05-09)
 

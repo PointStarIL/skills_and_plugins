@@ -1,27 +1,22 @@
 ---
 name: build-appendix-pdf
 description: "מארגן, ממספר וכורך נספחים של כתבי בי-דין ל-PDF מוכן להגשה לבית המשפט: מספור עברי/ערבי, אימות הפניות צולבות מול גוף כתב הטענות, דפי כיסוי, תוכן עניינים וסימניות. ממיר DOCX ל-PDF תוך שמירת עיצוב Word (פונטים מצורפים), אוכף מרווח 1.5 בגוף ו-1.15 בטבלאות, מנקה מקף ארוך, ומתקן כיוון עמוד. הפעל כאשר: 'כרוך נספחים', 'נספחים', 'דפי כיסוי', 'אימות הפניות', 'bind appendices', 'appendix package'."
-version: "3.2.0"
+metadata:
+  version: "1.0.0"
 ---
 
-# build-appendix-pdf (v3.1)
+# build-appendix-pdf
 
 ## Soul
 I organize, number, and bind legal pleading appendices into court-ready PDFs. I manage Hebrew and Arabic numbering styles, validate cross-references against the pleading text, and produce professional court documents with complete metadata tracking. I enforce **five Iron Rules** that guarantee the output is correctly oriented, properly rendered, formatted to match a human-typed Word document, free of AI-giveaway typography, and rendered with the right Word fonts on any machine.
 
-## What's new in v3.1
+## מנוע ה-DOCX היחיד
 
-A `fonts/` folder ships inside the skill containing the user's licensed Microsoft Word TTFs (David, Times New Roman, Arial). On first run on any machine, `ensure_fonts_installed()` auto-copies them to `~/.fonts` and refreshes `fc-cache`. Subsequent runs are no-ops. Result: the skill is fully portable - drop the folder onto a fresh Linux sandbox and binding works without any manual setup.
-
-## What was new in v3.0
-
-| Area | v2 | v3 |
-|------|----|----|
-| DOCX conversion | Pandoc + WeasyPrint primary | LibreOffice primary (uses David/Times/Arial fonts); WeasyPrint fallback. LibreOffice + Word fonts produces a near-identical match to the user's manual Word export. |
-| Em dashes (`—`) | Could leak into TOC, covers, bookmarks | **Banned everywhere**. `sanitize_text.sanitize()` replaces every U+2014/U+2013 with `-`. |
-| Line spacing | Inherited from DOCX | `prepare_docx.py` applies **1.5 lines for body**, **1.15 lines for table cells** with `space_before=0`/`space_after=0`. |
-| Sibling PDF detection | Not supported | `bind_pleading(prefer_sibling_pdf=True)` automatically uses `<stem>.pdf` if it exists alongside the DOCX. |
-| Word fonts | Manual install | Bundled in `fonts/` folder, auto-installed on first run. |
+הסקיל הזה **ממיר** DOCX ל-PDF ואינו בונה מסמכי Word. כל DOCX שנבנה במערכת נבנה דרך
+המנוע היחיד, `hebrew-docx-engine` שבאותה חבילה
+(`skills/hebrew-docx-engine/scripts/docx_hebrew_engine.py` + `references/template.docx`).
+אם נדרש לייצר כאן מסמך Word חדש, יש לבנות אותו דרך המנוע ולא ידנית. `prepare_docx.py`
+משנה מרווחי שורות לצורך ההמרה ל-PDF בלבד, ואינו מגדיר סגנונות.
 
 ## Iron Rules
 
@@ -37,7 +32,7 @@ Every TOC header, TOC row, cover-page name, bookmark label, and metadata string 
 ### Iron Rule 4 - Prefer sibling PDF over DOCX conversion
 When `bind_pleading('X.docx', ..., prefer_sibling_pdf=True)` and `X.pdf` exists in the same directory, the PDF is used (preserves the user's manual Word export).
 
-### Iron Rule 5 - Word fonts ensured on every run (NEW v3.1)
+### Iron Rule 5 - Word fonts ensured on every run
 Before every binding, `ensure_fonts_installed()` checks fontconfig for David / Times New Roman / Arial. If missing, copies bundled TTFs from `<skill>/fonts/` into `~/.fonts` and refreshes `fc-cache`. No-op when fonts are already installed. Skill is fully portable across machines.
 
 ## Folder Layout
@@ -47,7 +42,7 @@ build-appendix-pdf/
 ├── SKILL.md
 ├── INSTALL.md
 ├── CHANGELOG.md
-├── fonts/                  <-- NEW v3.1
+├── fonts/
 │   ├── README.md           licensing notice
 │   ├── david.ttf, davidbd.ttf
 │   ├── times.ttf, timesbd.ttf, timesi.ttf, timesbi.ttf

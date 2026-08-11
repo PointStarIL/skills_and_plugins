@@ -1,7 +1,8 @@
 ---
 name: local-ocr-folder
 description: "מבצע OCR מקומי על תיקיית מסמכי לקוח (PDF וסריקות) מבלי שתוכן המסמך ייכנס אי-פעם לחלון ההקשר של המודל. מזהה קבצים, מתקן כיוון ומיישר, מריץ Tesseract heb+eng, ומפיק לכל מסמך: TXT נקי, searchable-PDF, ו-TSV עם תיבות מילים וציון ביטחון. מחזיר למודל רק טבלת מטא-דאטה לא-מזהה. ה-TSV הוא הגשר לסקיל local-redact. הפעל כאשר: 'OCR על תיקייה', 'המר סריקות לטקסט', 'OCR מקומי', 'הכן מסמכים לניתוח חיצוני', 'local ocr folder'. Windows-native."
-version: "0.1.0"
+metadata:
+  version: "1.0.0"
 ---
 
 # local-ocr-folder, OCR מקומי לתיקיית מסמכים

@@ -1,3 +1,8 @@
+> **ארכיון — תיעוד שקדם לנקודת האפס (1.0.0, 2026-08-11).**
+> מספרי הגרסה בקובץ זה הם מספור ישן שאינו בשימוש עוד, והם אינם גרסת החבילה.
+> התיעוד השוטף מתנהל ב-CHANGELOG של החבילה: [../../CHANGELOG.md](../../CHANGELOG.md).
+> הקובץ נשמר בשל הפירוט הטכני שבו.
+
 # Changelog
 
 All notable changes to this project will be documented in this file.
