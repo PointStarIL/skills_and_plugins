@@ -80,5 +80,5 @@ git commit -m "$COMMIT_MSG"
 log "Committed: $COMMIT_MSG"
 
 git push
-log "Pushed to Gitea ✓"
+log "Pushed to origin ✓"
 log "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
