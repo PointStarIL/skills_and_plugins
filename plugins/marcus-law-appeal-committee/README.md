@@ -17,6 +17,6 @@
 
 ## סוכן
 
-- decision-reorganizer — מתזמר את זרימת ארגון/כתיבת ההחלטה
+- decision-reorganizer — מריץ את `reorder-decision-sections` בקונטקסט מבודד, לטיוטות ארוכות. אינו מחזיק תהליך משלו אלא קורא את הסקיל ומבצע לפיו
 
 Chaim Marcus, Marcus Law (marcus-law.co.il)

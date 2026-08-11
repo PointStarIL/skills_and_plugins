@@ -1,5 +1,6 @@
 {
   "name": "_template-plugin",
+  "version": "1.0.0",
   "description": "תיאור קצר של מה הפלאג-אין עושה ומתי להשתמש בו. החלף טקסט זה. ללא שדה version כדי שעדכון יתבצע לפי commit.",
   "author": {
     "name": "Chaim Marcus",

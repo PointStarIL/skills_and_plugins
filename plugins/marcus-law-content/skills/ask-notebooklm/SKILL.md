@@ -1,7 +1,8 @@
 ---
 name: ask-notebooklm
 description: "מתשאל את ה-Google NotebookLM שלך ישירות מתוך Claude ומחזיר תשובות Gemini המעוגנות במסמכים שלך עם ציטוטים מדויקים מהמקור, ובכך מקטין דרסטית הזיות. כולל אוטומציית דפדפן, ניהול ספריית מחברות, ושמירת חיבור רציפה. הפעל כאשר: 'NotebookLM', כתובת NotebookLM, 'תשאל את ה-NotebookLM שלי', 'בדוק את התיעוד שלי', 'שאל את המחברת'."
-version: "1.1.0"
+metadata:
+  version: "1.0.0"
 ---
 
 # NotebookLM Research Assistant Skill

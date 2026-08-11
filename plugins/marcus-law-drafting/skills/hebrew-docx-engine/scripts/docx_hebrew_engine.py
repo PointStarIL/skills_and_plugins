@@ -7,12 +7,18 @@ docx_hebrew_engine - מנוע משותף לבניית מסמכי Word משפטי
 ומחיל סגנונות בשם - כך כל המסמכים (clean-lawmate-draft, edit-legal-docx, וכל סקריפט
 עתידי) יוצאים עם עיצוב זהה.
 
-עקרון ה-RTL הקריטי: סגנון "List Paragraph" בתבנית נושא <w:rtl w:val="0"/>,
-שמכבה RTL. לכן כל run מקבל <w:rtl/> מפורש שדורס זאת - אחרת Word מתייחס
-לעברית כ-LTR ומציג אותה בפונט ה-ascii (Times New Roman) במקום David.
-שמות מודגשים מקבלים גם <w:bCs/> (bold complex-script - עברית מתבלטת רק כך).
-אין לקבוע rFonts/sz ברמת ה-run: המיפוי ascii=Times New Roman / cs=David
-והגדלים מגיעים מהסגנון.
+עקרון ה-RTL הקריטי: כל run מקבל <w:rtl/> מפורש. בלעדיו Word עלול להתייחס
+לעברית כ-LTR ולהציג אותה בפונט ה-ascii במקום ב-David. שמות מודגשים מקבלים
+גם <w:bCs/> (bold complex-script - עברית מתבלטת רק כך).
+
+אין לקבוע rFonts או sz ברמת ה-run. סגנון Normal בתבנית מפריד בין השפות:
+ascii/hAnsi = Times New Roman בגודל 10 (w:sz=20), ו-cs = David בגודל 12
+(w:szCs=24). כל קביעה ברמת ה-run תדרוס את ההפרדה ותשבור את גודל האנגלית.
+
+עקרון היישור בתאי טבלה: אין לקבוע w:jc בפסקה שבתוך תא. ב-OOXML הערכים
+left/right הם כינויים של start/end, ו-Word ממפה right ל-end. בפסקה עם
+<w:bidi/> הקצה הוא צד שמאל, ולכן jc=right מיישר שמאלה. בלי w:jc התא יורש
+מ-Normal את jc=both, וזה היישור הנכון.
 
 שימוש לדוגמה (בנייה מאפס):
 
@@ -22,11 +28,15 @@ docx_hebrew_engine - מנוע משותף לבניית מסמכי Word משפטי
     import docx_hebrew_engine as hd
 
     doc = hd.open_document()
-    hd.add_heading(doc, "רקע עובדתי ותיאור הצדדים")
-    hd.add_body(doc, "פסקה ראשונה...")      # ממוספר 1
-    hd.add_body(doc, "פסקה שנייה...")       # ממוספר 2
-    hd.add_hebrew_item(doc, "סעד מבוקש ראשון")  # א.
-    hd.add_exhibit_ref(doc, "העתק X מצורף ומסומן כנספח 1.")  # קו תחתון
+    hd.add_heading(doc, "רקע עובדתי ותיאור הצדדים")   # כותרת 2
+    hd.add_heading3(doc, "תת פרק")                    # כותרת 3
+    hd.add_body(doc, "פסקה ראשונה...")                # 1.
+    hd.add_body(doc, "פסקה שנייה...")                 # 2.
+    hd.add_hebrew_item(doc, "סעד מבוקש ראשון")        # א.   (סעיף, ilvl=1)
+    hd.add_clause(doc, "רמה שלישית", level=2)         # (1)
+    hd.add_clause(doc, "רמה רביעית", level=3)         # (א)
+    hd.add_quote(doc, "ציטוט מתוך הפרוטוקול")         # סגנון Quote
+    hd.add_exhibit_ref(doc, "העתק X מצורף ומסומן כנספח 1.")  # שורת נספח
     hd.save(doc, "out.docx")
 """
 
@@ -37,7 +47,6 @@ from docx import Document
 from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
 from docx.shared import Cm
-from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.enum.table import WD_TABLE_ALIGNMENT
 
 
@@ -47,13 +56,22 @@ BOLD_CLOSE = '\x02'
 
 TEMPLATE_PATH = Path(__file__).resolve().parent.parent / "references" / "template.docx"
 
-# Style names (resolved by python-docx via name → styleId lookup in the template)
-STYLE_BODY = "List Paragraph"     # auto-numbered 1, 2, 3 (numId=14 via style)
+# שמות הסגנונות. python-docx מאתר אותם לפי השם ולא לפי styleId, ולכן שינוי
+# styleId בתבנית אינו מחייב שינוי כאן.
+STYLE_BODY = "סעיף"          # מספור אוטומטי דרך numId=5, ארבע רמות הזחה
+STYLE_TITLE = "Title"        # כותרת ראשית של המסמך
 STYLE_HEADING = "Heading 2"
+STYLE_HEADING3 = "Heading 3"
+STYLE_EXHIBIT = "Subtitle"   # כינויו בעברית: "שורת נספח"
+STYLE_QUOTE = "Quote"
 
-# numId values predefined in template.docx's numbering.xml
-EXHIBIT_NUMID = 0    # override → "no list" marker (used for underlined exhibit refs)
-REMEDY_NUMID = 43    # → abstractNumId=7 (hebrew1: א., ב., ג., ד.)
+# הרשימה שסגנון "סעיף" נשען עליה. רמות ההזחה:
+#   ilvl=0  ->  1.     (decimal)
+#   ilvl=1  ->  א.     (hebrew1)
+#   ilvl=2  ->  (1)    (decimal)
+#   ilvl=3  ->  (א)    (hebrew2)
+CLAUSE_NUMID = 5
+MAX_CLAUSE_LEVEL = 3
 
 # Directional marks that fragment regex/search when ingesting source text.
 _LRM = '‎'
@@ -111,11 +129,16 @@ def apply_paragraph_underline(p):
 def add_run(p, text, bold=False, underline=False):
     """Add a run with an explicit RTL marker. Font/size come from the style.
 
-    Every run gets <w:rtl/> to override the List Paragraph style's rtl=0;
-    bold runs also get <w:bCs/> (Hebrew renders bold only via complex-script).
-    rFonts is deliberately left unset so the Normal style's
-    ascii=Times New Roman / cs=David mapping applies.
+    כל run מקבל <w:rtl/> מפורש; runs מודגשים מקבלים גם <w:bCs/>, מפני
+    שעברית מתבלטת רק דרך complex-script. rFonts ו-sz נשארים ללא קביעה
+    בכוונה, כדי שההפרדה שבסגנון Normal תחול: ascii = Times New Roman 10,
+    cs = David 12.
+
+    הטקסט עובר sanitize_source_text אוטומטית: הסרת LRM/RLM והחלפת מקף
+    ארוך/בינוני במקף רגיל. זו נקודת המעבר היחידה שכל טקסט עובר בה בדרכו
+    למסמך, ולכן ההגנה כאן חלה על כל הסקיילים בלי תלות במשמעת הקורא.
     """
+    text = sanitize_source_text(text)
     r = p.add_run(text)
     rPr = r._r.get_or_add_rPr()
     if bold:
@@ -149,6 +172,18 @@ def add_formatted_text(p, text, underline=False):
 # ----- High-level paragraph builders -----------------------------------
 
 
+def add_title(doc, text):
+    """כותרת ראשית של המסמך (סגנון Title). סימוני הדגשה מוסרים.
+
+    היישור והמרווחים מגיעים מהסגנון שבתבנית. אין לקבוע כאן w:jc: בפסקת
+    bidi הערך right ממופה ל-end, שהוא צד שמאל. ראה את הערת היישור בראש הקובץ.
+    """
+    clean = text.replace(BOLD_OPEN, '').replace(BOLD_CLOSE, '')
+    p = doc.add_paragraph(style=STYLE_TITLE)
+    add_run(p, clean)
+    return p
+
+
 def add_heading(doc, text):
     """Add a section heading (Heading 2 style). Bold markers are stripped."""
     clean = text.replace(BOLD_OPEN, '').replace(BOLD_CLOSE, '')
@@ -157,34 +192,62 @@ def add_heading(doc, text):
     return p
 
 
-def add_body(doc, text):
-    """Add a body paragraph (List Paragraph, auto-numbered 1, 2, 3...)."""
+def add_heading3(doc, text):
+    """כותרת משנה (סגנון Heading 3). סימוני הדגשה מוסרים."""
+    clean = text.replace(BOLD_OPEN, '').replace(BOLD_CLOSE, '')
+    p = doc.add_paragraph(style=STYLE_HEADING3)
+    add_run(p, clean)
+    return p
+
+
+def add_clause(doc, text, level=0):
+    """פסקת גוף בסגנון "סעיף", ברמת ההזחה המבוקשת (0 עד 3).
+
+    level=0 -> 1.    level=1 -> א.    level=2 -> (1)    level=3 -> (א)
+
+    רמה 0 מגיעה מהסגנון עצמו ואינה דורשת numPr מפורש. ברמות 1 עד 3 מוחל
+    numPr על אותה רשימה (numId=5) עם ilvl אחר, בדיוק כפי שנעשה ב-Word.
+    """
+    if not 0 <= level <= MAX_CLAUSE_LEVEL:
+        raise ValueError(f"level חייב להיות בין 0 ל-{MAX_CLAUSE_LEVEL}, התקבל {level}")
     p = doc.add_paragraph(style=STYLE_BODY)
+    if level:
+        set_numbering(p, CLAUSE_NUMID, ilvl=level)
     add_formatted_text(p, text)
     return p
+
+
+def add_body(doc, text):
+    """פסקת גוף ממוספרת 1, 2, 3 (סגנון "סעיף", רמה 0)."""
+    return add_clause(doc, text, level=0)
 
 
 def add_hebrew_item(doc, text):
-    """Add a paragraph numbered with Hebrew letters (א., ב., ג., ...)."""
-    p = doc.add_paragraph(style=STYLE_BODY)
-    set_numbering(p, REMEDY_NUMID)
+    """פסקה ממוספרת באותיות עבריות א., ב., ג. (סגנון "סעיף", רמה 1)."""
+    return add_clause(doc, text, level=1)
+
+
+def add_exhibit_ref(doc, text):
+    """שורת הפניה לנספח (סגנון "שורת נספח"/Subtitle).
+
+    הסגנון עצמו מבטל את המספור ומחיל מודגש וקו תחתון, ולכן אין צורך
+    בקו תחתון ידני או בביטול מספור בקוד.
+    """
+    p = doc.add_paragraph(style=STYLE_EXHIBIT)
     add_formatted_text(p, text)
     return p
 
 
-def add_exhibit_ref(doc, text):
-    """Add an underlined exhibit reference (no visible list marker)."""
-    p = doc.add_paragraph(style=STYLE_BODY)
-    set_numbering(p, EXHIBIT_NUMID)
-    apply_paragraph_underline(p)
-    add_formatted_text(p, text, underline=True)
+def add_quote(doc, text):
+    """ציטוט (סגנון Quote): מודגש, מוזח משני הצדדים, מרווח 1.15."""
+    p = doc.add_paragraph(style=STYLE_QUOTE)
+    add_formatted_text(p, text)
     return p
 
 
 def add_plain(doc, text):
-    """Add a non-numbered body paragraph (List Paragraph, marker suppressed)."""
-    p = doc.add_paragraph(style=STYLE_BODY)
-    set_numbering(p, EXHIBIT_NUMID)   # numId=0 → no marker
+    """פסקה לא ממוספרת בסגנון הרגיל (Normal)."""
+    p = doc.add_paragraph()
     add_formatted_text(p, text)
     return p
 
@@ -242,7 +305,7 @@ def _set_cell_rtl(cell, text, bold=False):
     p = cell.paragraphs[0]
     p.clear()  # drop any existing runs; NOT p.text="" which leaves an empty run
     _insert_ordered(p._p.get_or_add_pPr(), OxmlElement('w:bidi'), _PPR_ORDER)
-    p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+    # אין לקבוע כאן w:jc. ראה "עקרון היישור בתאי טבלה" בראש הקובץ.
     if bold:
         add_run(p, text.replace(BOLD_OPEN, '').replace(BOLD_CLOSE, ''), bold=True)
     else:

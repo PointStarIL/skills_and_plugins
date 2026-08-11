@@ -1,7 +1,7 @@
 {
   "name": "marcus-law-drafting",
-  "version": "1.4.0",
-  "description": "חבילת ניסוח וייצור מסמכים משפטיים: בניית DOCX בעברית RTL, ניקוי טיוטות law-mate, עריכה מתקדמת, וכריכת נספחים ל-PDF. כוללת 4 סקיילים: hebrew-docx-engine (מנוע העיצוב - מקור-אמת), edit-legal-docx (מבנה משפטי + tracked-changes), clean-lawmate-draft (ניקוי טיוטות), build-appendix-pdf (כריכת נספחים).",
+  "version": "1.0.0",
+  "description": "חבילת ניסוח וייצור מסמכים משפטיים: בניית DOCX בעברית RTL, עריכה מתקדמת, וכריכת נספחים ל-PDF. כוללת 3 סקיילים: hebrew-docx-engine (מנוע העיצוב - מקור-האמת היחיד לכל מסמכי ה-DOCX), edit-legal-docx (מבנה משפטי + tracked-changes), build-appendix-pdf (כריכת נספחים).",
   "author": {
     "name": "Chaim Marcus",
     "email": "chaim@marcus-law.co.il"
