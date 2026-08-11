@@ -5,19 +5,12 @@ Repository זה הוא ה-marketplace הפרטי של משרד עורכי דין
 > **כללי העבודה ב-repo מרוכזים ב-[CLAUDE.md](CLAUDE.md)** — הגשת תיקונים דרך `upload/`, חובת ה-PR
 > והמיזוג, והעלאת גרסאות. מסמך זה הוא הפירוט המלא שמאחוריהם.
 
-## כתובות ה-marketplace
+## כתובת ה-marketplace
 
-| מקור | כתובת | תפקיד |
-|---|---|---|
-| **GitHub** | `https://github.com/PointStarIL/skills_and_plugins` | **מקור-אמת** — כאן נדחפים השינויים, וכאן ממוזגים PRs שמפעילים את הסנכרון ל-Claude Desktop (Cowork) |
-| **Gitea (פרטי)** | `https://gitea.prod.marcus-law.co.il/skills_and_plugins/marketplace.git` | **mirror** — עותק גיבוי פרטי שמסונכרן אוטומטית מ-GitHub (cron בשרת hetzner) |
+**`https://github.com/PointStarIL/skills_and_plugins`** הוא המקור היחיד. כאן נדחפים
+השינויים, וכאן ממוזגים ה-PRs שמפעילים את הסנכרון ל-Claude Desktop (Cowork).
 
-> **שים לב — היפוך תפקידים (2026-05-31):** עד היום Gitea היה מקור-האמת ו-GitHub היה ה-mirror.
-> כעת ההפך: **GitHub הוא מקור-האמת**. הסיבה: Claude Desktop (Cowork) מסנכרן את ה-marketplace
-> רק כש**ממוזג PR ב-GitHub** (auto-sync), ו-push-mirror מ-Gitea לעולם לא יוצר אירוע מיזוג-PR.
-> ראה את הסעיף "עדכון ב-Claude Desktop (Cowork)" למטה.
-
-**הוספת marketplace במחשב חדש** (GitHub — עובד גם ב-Claude Desktop GUI):
+**הוספת marketplace במחשב חדש** (עובד גם ב-Claude Desktop GUI):
 ```
 /plugin marketplace add PointStarIL/skills_and_plugins
 ```
@@ -79,7 +72,7 @@ Repository זה הוא ה-marketplace הפרטי של משרד עורכי דין
 4. הוסף רשומה חדשה למערך `plugins` בקובץ `.claude-plugin/marketplace.json`, עם `name` ו-`source` יחסי (`./plugins/<plugin-name>`).
 5. commit, ופרסם דרך **PR ל-main ב-GitHub** (`git push origin <branch>` ואז מיזוג ה-PR).
    המיזוג מפעיל את ה-auto-sync של Claude Desktop (Cowork); משתמשי Claude Code יקבלו את
-   העדכון אחרי `/plugin marketplace update`. ה-mirror ב-Gitea מתעדכן אוטומטית מ-GitHub.
+   העדכון אחרי `/plugin marketplace update`.
 
 ## איך מגישים תיקון — תיקיית `upload/`
 

@@ -31,9 +31,9 @@ Repo זה הוא ה-marketplace הפרטי של משרד עורכי דין חי�
 - **לעולם לא push ישיר ל-`main`.** תמיד branch → PR.
 - **מיזוג ה-PR הוא האירוע שמפיץ את השינוי.** כל עוד ה-PR פתוח, השינוי לא קיים מבחינת אף מחשב אחר:
   - **Claude Desktop (Cowork)** מסנכרן את ה-marketplace **רק כשממוזג PR ב-GitHub** (auto-sync).
-    push ל-branch, ואפילו push ישיר ל-main מ-Gitea, לא מייצרים את האירוע הזה.
+    push ל-branch, ואפילו push ישיר ל-main, אינם מייצרים את האירוע הזה.
   - **Claude Code (CLI)** מושך מ-`main` בפקודה `/plugin marketplace update marcus-law` ואז `/plugin update`.
-- GitHub (`PointStarIL/skills_and_plugins`) הוא **מקור-האמת**. Gitea הוא mirror שמתעדכן ממנו אוטומטית.
+- `PointStarIL/skills_and_plugins` ב-GitHub הוא **המקור היחיד**. אין mirror ואין remote נוסף.
 - אחרי פתיחת PR — אמור למשתמש במפורש שהוא צריך להיות ממוזג, ואל תדווח "העדכון הופץ" לפני שהוא מוזג.
 
 ## 3. ניהול גרסאות — מה באמת קובע
