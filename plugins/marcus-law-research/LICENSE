@@ -1,0 +1,48 @@
+MIT License
+
+Copyright (c) 2026 Chaim Marcus, Marcus Law Offices (marcus-law.co.il)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+## Third-party content / תוכן צד שלישי
+
+The MIT license above covers the CODE in this package only.
+
+Legislative text retrieved at runtime comes from Hebrew Wikisource
+(he.wikisource.org) and is licensed under Creative Commons
+Attribution-ShareAlike 4.0 International (CC BY-SA 4.0):
+https://creativecommons.org/licenses/by-sa/4.0/
+
+Redistributing retrieved text requires attributing Hebrew Wikisource and
+preserving the ShareAlike terms. The tool prints a source line with the page
+URL, revision id and revision date on every retrieval for this purpose.
+
+Note: under Israeli law, section 6 of the Copyright Act, 5768-2007, statutes,
+regulations and case law are not protected by copyright. The CC BY-SA terms
+attach to Wikisource's editorial layer (structure, markup, annotations), not
+to the statutory text itself.
+
+הרישיון לעיל חל על **הקוד** בלבד. נוסח החקיקה הנשלף מגיע מוויקיטקסט העברי
+ומופץ ברישיון CC BY-SA 4.0. הפצה חוזרת של נוסח שנשלף מחייבת ייחוס לוויקיטקסט
+ושמירה על תנאי ShareAlike. הכלי מדפיס שורת מקור עם קישור, מספר גרסה ותאריך
+גרסה בכל שליפה לצורך זה. יצוין כי לפי סעיף 6 לחוק זכות יוצרים, התשס"ח-2007,
+אין זכות יוצרים בחקיקה ובפסיקה; תנאי CC BY-SA חלים על שכבת העריכה של ויקיטקסט
+ולא על נוסח החוק עצמו.

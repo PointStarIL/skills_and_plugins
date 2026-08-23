@@ -1,0 +1,17 @@
+{
+  "name": "marcus-law-research",
+  "version": "1.0.0",
+  "description": "חבילת מחקר משפטי ממקורות ראשוניים. כוללת סקיל אחד: search-open-law-book (חיבור ישיר לספר החוקים הפתוח בוויקיטקסט לשליפת נוסח מדויק של חוקים ותקנות, עם מראה מקום ותאריך גרסה לכל ציטוט).",
+  "author": {
+    "name": "Chaim Marcus",
+    "email": "chaim@marcus-law.co.il"
+  },
+  "keywords": [
+    "legal",
+    "hebrew",
+    "marcus-law",
+    "legislation",
+    "wikisource"
+  ],
+  "license": "MIT"
+}

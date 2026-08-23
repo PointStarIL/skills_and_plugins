@@ -95,6 +95,23 @@
         "name": "Chaim Marcus",
         "email": "chaim@marcus-law.co.il"
       }
+    },
+    {
+      "name": "marcus-law-research",
+      "source": "./plugins/marcus-law-research",
+      "description": "חבילת מחקר משפטי ממקורות ראשוניים: שליפת נוסח מדויק של חוקים ותקנות מספר החוקים הפתוח בוויקיטקסט, עם מראה מקום ותאריך גרסה לכל ציטוט. כוללת סקיל אחד.",
+      "category": "legal",
+      "tags": [
+        "legal",
+        "hebrew",
+        "legislation",
+        "wikisource",
+        "research"
+      ],
+      "author": {
+        "name": "Chaim Marcus",
+        "email": "chaim@marcus-law.co.il"
+      }
     }
   ]
 }
