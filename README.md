@@ -57,6 +57,7 @@ Repository זה הוא ה-marketplace הפרטי של משרד עורכי דין
 │   ├── marcus-law-content/            מצגות, מאמרים, NotebookLM
 │   ├── marcus-law-client-management/  ארגון תיקי לקוח (סיוע משפטי)
 │   ├── marcus-law-privacy/            OCR מקומי והשחרת פרטים מזהים
+│   ├── marcus-law-research/           שליפת נוסח חוקים מספר החוקים הפתוח (ויקיטקסט)
 │   └── _template-plugin/              תבנית להעתקה כשמוסיפים פלאג-אין חדש
 ├── scripts/                    watcher ומעבד לתיקיית upload/ (רצים בשרת)
 ├── upload/                     תיבת-הדואר לתיקונים (התוכן לא נכנס ל-git)
