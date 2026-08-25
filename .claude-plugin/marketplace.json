@@ -47,13 +47,15 @@
     {
       "name": "marcus-law-client-management",
       "source": "./plugins/marcus-law-client-management",
-      "description": "חבילת ניהול לקוחות: ארגון תיקי לקוחות לסיוע משפטי.",
+      "description": "חבילת ניהול לקוחות: ארגון תיקי לקוחות לסיוע משפטי, והכנת הצעת מחיר והסכם שכר טרחה בתיקי ביטוח לאומי לפי התקרה שהחוק מתיר. כוללת שני סקיילים.",
       "category": "legal",
       "tags": [
         "legal",
         "hebrew",
         "clients",
-        "legal-aid"
+        "legal-aid",
+        "national-insurance",
+        "fee-quote"
       ],
       "author": {
         "name": "Chaim Marcus",
