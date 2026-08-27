@@ -73,6 +73,9 @@ def main():
     ap = argparse.ArgumentParser(description="אימות שאריות אחרי צריבה")
     ap.add_argument("out_dir")
     ap.add_argument("--key", default=None)
+    ap.add_argument("--show-values", action="store_true",
+                    help="הצג את ערכי השאריות עצמם. לשימוש אנושי מקומי בלבד: "
+                         "הערכים הם תוכן רגיש ואסור שייכנסו להקשר של מודל.")
     args = ap.parse_args()
     out_dir = os.path.abspath(args.out_dir)
     with open(os.path.join(out_dir, "manifest.json"), encoding="utf-8") as f:
@@ -86,8 +89,16 @@ def main():
         except Exception as e:  # noqa: BLE001
             eprint(f"  [שגיאה] אימות {d['filename']}: {e}")
             r = {"checked": 0, "residuals": [], "error": str(e)}
+        if not args.show_values:
+            # ברירת המחדל: ספירה ומספרי עמודים בלבד, בלי ערכים.
+            r = dict(r)
+            r["pages"] = sorted({x["page"] for x in r.get("residuals", [])})
+            r["residuals"] = len(r.get("residuals", []))
         result["documents"].append({"key": d["key"], "filename": d["filename"], **r})
-    result["total_residuals"] = sum(len(d.get("residuals", [])) for d in result["documents"])
+    result["total_residuals"] = sum(
+        d["residuals"] if isinstance(d.get("residuals"), int) else len(d.get("residuals", []))
+        for d in result["documents"]
+    )
     print(json.dumps(result, ensure_ascii=False))
 
 
