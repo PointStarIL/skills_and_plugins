@@ -28,6 +28,24 @@
       }
     },
     {
+      "name": "marcus-law-arnona-committee",
+      "source": "./plugins/marcus-law-arnona-committee",
+      "description": "חבילת ועדת ערר לארנונה: פתיחת תיק, ארגון וסיווג מסמכים, חילוץ טענות, בדיקה מול צו הארנונה, וניסוח החלטות ביניים והחלטות סופיות בכתיבה תמציתית. כוללת 6 סקיילים.",
+      "category": "legal",
+      "tags": [
+        "legal",
+        "hebrew",
+        "arnona",
+        "appeal-committee",
+        "municipal-tax",
+        "decisions"
+      ],
+      "author": {
+        "name": "Chaim Marcus",
+        "email": "chaim@marcus-law.co.il"
+      }
+    },
+    {
       "name": "marcus-law-content",
       "source": "./plugins/marcus-law-content",
       "description": "חבילת תוכן: מצגות משפטיות בעברית, כתיבת מאמרים, ואינטגרציה עם NotebookLM.",
