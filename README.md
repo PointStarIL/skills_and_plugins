@@ -53,6 +53,7 @@ Repository זה הוא ה-marketplace הפרטי של משרד עורכי דין
 │   │   ├── skills/<skill>/SKILL.md
 │   │   ├── agents/
 │   │   └── README.md
+│   ├── marcus-law-arnona-committee/   ועדת ערר לארנונה: ניהול תיקים + כתיבת החלטות
 │   ├── marcus-law-drafting/           ייצור מסמכים (מנוע DOCX, ניקוי, נספחים)
 │   ├── marcus-law-content/            מצגות, מאמרים, NotebookLM
 │   ├── marcus-law-client-management/  ארגון תיקי לקוח (סיוע משפטי)
@@ -135,8 +136,8 @@ plugins/marcus-law-drafting/skills/hebrew-docx-engine/
 
 - **כל בנייה של DOCX עברי מאפס חייבת לעבור דרכו.** סקיל שחסרה לו יכולת מרחיב את המנוע
   ולא עוקף אותו. ה-API והעקרונות ב-`skills/hebrew-docx-engine/SKILL.md`.
-- חבילות `marcus-law-appeal-committee` ו-`marcus-law-client-management` מצהירות תלות
-  (`dependencies`) על `marcus-law-drafting`, כך שהמנוע מותקן אוטומטית איתן.
+- חבילות `marcus-law-appeal-committee`, `marcus-law-arnona-committee` ו-`marcus-law-client-management`
+  מצהירות תלות (`dependencies`) על `marcus-law-drafting`, כך שהמנוע מותקן אוטומטית איתן.
 - `edit-legal-docx`, `organize-client-folder`, `extract-appeal-claims` ו-`write-appeal-decision`
   בונים דרכו. **אין מנוע שני ואין חריגים.** `edit-legal-docx` מטפל בעריכת DOCX **קיים**
   ובמבנה המשפטי, ומפנה לכאן לבנייה מאפס.

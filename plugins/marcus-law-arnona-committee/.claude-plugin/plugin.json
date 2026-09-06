@@ -1,0 +1,20 @@
+{
+  "name": "marcus-law-arnona-committee",
+  "version": "0.1.0",
+  "description": "ניהול תיקי ערר בוועדת ערר לארנונה: פתיחת תיק, ארגון וסיווג מסמכים, חילוץ טענות, בדיקה מול צו הארנונה, וניסוח החלטות ביניים והחלטות סופיות בכתיבה תמציתית. כוללת 6 סקיילים.",
+  "author": {
+    "name": "Chaim Marcus",
+    "email": "chaim@marcus-law.co.il"
+  },
+  "keywords": [
+    "legal",
+    "hebrew",
+    "arnona",
+    "appeal-committee",
+    "municipal-tax"
+  ],
+  "license": "Private",
+  "dependencies": [
+    "marcus-law-drafting"
+  ]
+}
