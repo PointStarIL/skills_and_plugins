@@ -1,7 +1,7 @@
 {
   "name": "marcus-law-caselaw",
-  "version": "1.0.0",
-  "description": "חבילת מסד הפסיקה: תיעוד פסקי דין למסד פסיקה (Vault של Obsidian) בתיקי ביטוח לאומי ודיני עבודה - קביעות, כרטיסי-אב ומעקב אזכורים, עם מראה מקום לפי כללי האזכור האחיד. כוללת סקיל אחד.",
+  "version": "1.1.0",
+  "description": "חבילת מסד הפסיקה: תיעוד פסקי דין למסד פסיקה (Vault של Obsidian) בתיקי ביטוח לאומי, דיני עבודה וארנונה - קביעות, כרטיסי-אב ומעקב אזכורים, עם מראה מקום לפי כללי האזכור האחיד. כוללת סקיל אחד.",
   "author": {
     "name": "Chaim Marcus",
     "email": "chaim@marcus-law.co.il"
@@ -13,7 +13,8 @@
     "case-law",
     "obsidian",
     "national-insurance",
-    "labor-law"
+    "labor-law",
+    "arnona"
   ],
   "license": "Private"
 }
