@@ -63,9 +63,27 @@
       }
     },
     {
+      "name": "marcus-law-caselaw",
+      "source": "./plugins/marcus-law-caselaw",
+      "description": "חבילת מסד הפסיקה: תיעוד פסקי דין למסד פסיקה (Vault של Obsidian) בתיקי ביטוח לאומי ודיני עבודה - קביעות, כרטיסי-אב ומעקב אזכורים, עם מראה מקום לפי כללי האזכור האחיד. כוללת סקיל אחד.",
+      "category": "legal",
+      "tags": [
+        "legal",
+        "hebrew",
+        "case-law",
+        "obsidian",
+        "national-insurance",
+        "labor-law"
+      ],
+      "author": {
+        "name": "Chaim Marcus",
+        "email": "chaim@marcus-law.co.il"
+      }
+    },
+    {
       "name": "marcus-law-client-management",
       "source": "./plugins/marcus-law-client-management",
-      "description": "חבילת ניהול לקוחות: ארגון תיקי לקוחות לסיוע משפטי, והכנת הצעת מחיר והסכם שכר טרחה בתיקי ביטוח לאומי לפי התקרה שהחוק מתיר. כוללת שני סקיילים.",
+      "description": "חבילת ניהול לקוחות: ארגון תיקי לקוחות לסיוע משפטי, בניית שאלון לקוח מקוון שנולד מחדש לכל תיק, והכנת הצעת מחיר והסכם שכר טרחה בתיקי ביטוח לאומי לפי התקרה שהחוק מתיר. כוללת שלושה סקיילים.",
       "category": "legal",
       "tags": [
         "legal",
