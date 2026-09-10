@@ -62,7 +62,7 @@ build-appendix-pdf/
     ├── compress_pdf.py     Ghostscript compression
     ├── redact_pdf.py       redaction with Human Gate
     ├── hebrew_utils.py     Hebrew letter conversion
-    └── validate_references.py
+    └── validate_references.py  שער 1: אימות הפניות צולבות (CLI, exit 1 בכשל)
 ```
 
 ## Workflow
@@ -70,6 +70,11 @@ build-appendix-pdf/
 ```python
 from prepare_docx import prepare_pleading
 from bind_pdf import bind_pleading
+
+APPENDIX_LIST = [
+    {'id': '1', 'name': 'תיאור נספח 1'},
+    {'id': '2', 'name': 'תיאור נספח 2'},
+]
 
 # 1. Apply 1.5 body / 1.15 table line spacing + sanitise dashes in DOCX
 prepare_pleading('pleading.docx', '/tmp/spaced.docx')
@@ -79,14 +84,45 @@ prepare_pleading('pleading.docx', '/tmp/spaced.docx')
 result = bind_pleading(
     pleading_path='/tmp/spaced.docx',
     appendix_files=['nispach_1.pdf', 'nispach_2.pdf'],
-    appendix_list=[
-        {'id': '1', 'name': 'תיאור נספח 1'},
-        {'id': '2', 'name': 'תיאור נספח 2'},
-    ],
+    appendix_list=APPENDIX_LIST,
     output_path='out.pdf',
     style='arabic',
 )
 ```
+
+### שער 1, אימות הפניות צולבות (לפני הכריכה)
+
+**חובה. הרץ לפני `bind_pleading`,** אחרת ייכרך תיק שבו כתב הטענות מפנה לנספח שאינו קיים,
+או שנספח נכרך ואיש אינו מפנה אליו. שתי התקלות מתגלות בבית המשפט ולא כאן.
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/build-appendix-pdf/scripts/validate_references.py" /tmp/spaced.docx --appendix-list applist.json
+```
+
+`applist.json` הוא בדיוק אותו `APPENDIX_LIST`. קוד יציאה: `0` תקין, `1` נמצאו שגיאות,
+`2` לא חולץ טקסט (PDF סרוק ללא שכבת טקסט: הרץ OCR תחילה, אל תתעלם).
+
+- `orphaned_references` (הפניה לנספח שאינו ברשימה) → **עצור.** או שחסר נספח, או שההפניה שגויה.
+- `missing_references` (נספח ברשימה שאיש אינו מפנה אליו) → **עצור ושאל את המשתמש.**
+  לפעמים זה מכוון, אבל זו החלטה שלו ולא שלך.
+
+**אל תכרוך על יציאה שאינה 0.**
+
+### שער 2, `pages_match` (אחרי הכריכה)
+
+`bind_pleading()` מחזיר `pages_match`, `expected_pages` ו-`total_pages`. הוא סופר בעצמו
+אם התיק הכרוך מכיל את מספר העמודים שהיה אמור להכיל.
+
+```python
+if not result['pages_match']:
+    raise SystemExit(
+        f"כשל כריכה: צפוי {result['expected_pages']} עמודים, "
+        f"בפועל {result['total_pages']}."
+    )
+```
+
+**`pages_match == False` פירושו שעמודים אבדו או שוכפלו בכריכה. אל תחזיר את ה-PDF למשתמש.**
+דווח על הפער, ציין את שני המספרים, ובדוק מול `page_map` איזה נספח לא נכרך כראוי.
 
 ## Numbering Styles
 * Hebrew letters: נספח א', נספח ב', ... up to ל' (30 max).
@@ -108,6 +144,8 @@ pip install weasyprint pymupdf pypdf python-docx pillow python-bidi --break-syst
 ## Output Metadata
 
 `bind_pleading()` returns `output_path`, `total_pages`, `expected_pages`, `file_size_mb`, `pleading_pages`, `toc_page`, `appendix_count`, `style`, `pages_match`, `page_map`, `preprocess_report`.
+
+`pages_match` אינו מידע לעיון: הוא **שער 2** שבסעיף Workflow. חובה לבדוק אותו לפני החזרת הפלט.
 
 ## Known Limitations
 * Maximum 30 Hebrew appendices.
