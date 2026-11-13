@@ -159,10 +159,10 @@
       "tags": [
         "legal"
       ],
+      "version": "1.0.0",
       "author": {
         "name": "Chaim Marcus",
-        "email": "chaim@marcus-law.co.il"      
-        "version": "1.0.0"
+        "email": "chaim@marcus-law.co.il"
       }
     }
   ]
