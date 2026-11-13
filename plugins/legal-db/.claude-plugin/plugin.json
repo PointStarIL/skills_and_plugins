@@ -3,7 +3,6 @@
   "displayName": "Legal DB",
   "version": "1.0.0",
   "license": "MIT",
-  "icon": "./.claude-plugin/icon.png",
   "description": "Work with the Legal (ליגל) law-office case-management software from Claude: clients, cases, calendar events, documents, sub-folders and statuses, with preview, approval, automatic backup and verification.",
   "author": {
     "name": "Legal DB tools"
