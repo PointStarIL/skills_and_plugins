@@ -107,6 +107,7 @@ def main():
 
     # --- שלב 5: burn (אופציונלי) ---
     burned = False
+    verification = {}
     if args.burn:
         eprint("== שלב 5: צריבה בלתי-הפיכה ==")
         burned = True
@@ -117,19 +118,34 @@ def main():
                 eprint(f"  [שגיאה] burn {d['filename']}: {e}")
 
         # --- אימות אחרי צריבה: ודא שהערכים שזוהו אינם קריאים בפלט ---
+        # לא מדפיסים ערכי שאריות: הם תוכן רגיש, והמתזמר אינו רשאי לראותו.
+        # רק ספירה ומספרי עמודים, וגם הם נכנסים ל-redaction_summary.json.
         eprint("== אימות שאריות ==")
         for d in docs:
             try:
                 res = verify_mod.verify_document(out_dir, d).get("residuals", [])
+                pages = sorted({r["page"] for r in res})
+                verification[d["key"]] = {"residuals": len(res), "pages": pages}
                 if res:
-                    eprint(f"  [אזהרה] {d['filename']}: {len(res)} שאריות אפשריות — "
-                           + ", ".join(f"עמ' {r['page']}:{r['value']}" for r in res[:5]))
+                    eprint(f"  [אזהרה] {d['filename']}: {len(res)} שאריות אפשריות "
+                           f"בעמודים {', '.join(str(p) for p in pages)}. "
+                           f"פתח את הקובץ מקומית ובדוק.")
                 else:
                     eprint(f"  [OK] {d['filename']}: אימות נקי (0 שאריות).")
             except Exception as e:  # noqa: BLE001
+                verification[d["key"]] = {"residuals": None, "pages": [], "error": str(e)}
                 eprint(f"  [שגיאה] verify {d['filename']}: {e}")
 
     # --- סיכום (הפלט היחיד ל-stdout) ---
+    for x in summary_docs:
+        x["verification"] = verification.get(x["key"])
+    # מסמך נחשב "נבדק" רק אם האימות החזיר ספירה. מסמך שהאימות שלו נכשל
+    # (residuals=None + error) אינו נבדק, ואסור שייספר כאילו עבר.
+    verified_docs = [x for x in summary_docs
+                     if isinstance((x["verification"] or {}).get("residuals"), int)]
+    failed_docs = [x for x in summary_docs
+                   if x["verification"] is not None and x not in verified_docs]
+    total_residuals = sum(x["verification"]["residuals"] for x in verified_docs)
     summary = {
         "out_dir": out_dir,
         "engine_requested": args.engine,
@@ -140,6 +156,9 @@ def main():
         "totals": {
             "documents": len(summary_docs),
             "redactions": sum(x["total"] for x in summary_docs),
+            "verified_documents": len(verified_docs),
+            "verification_errors": len(failed_docs),
+            "residuals": total_residuals if burned else None,
         },
     }
     with open(os.path.join(out_dir, "redaction_summary.json"), "w", encoding="utf-8") as f:
@@ -162,6 +181,19 @@ def _print_summary(summary):
     if not summary["burned"]:
         print("שער אנושי: פתח את review_preview.pdf בכל מסמך, סקור, ואז הרץ שוב עם --burn.")
     else:
+        res = summary["totals"]["residuals"]
+        print(f"\nאימות שאריות: {summary['totals']['verified_documents']}/"
+              f"{summary['totals']['documents']} מסמכים נבדקו, {res} שאריות אפשריות.")
+        if res:
+            for d in summary["documents"]:
+                v = d.get("verification") or {}
+                if v.get("residuals"):
+                    pages = ", ".join(str(p) for p in v.get("pages", []))
+                    print(f"  [!] {d['filename']}: {v['residuals']} שאריות בעמודים {pages}")
+            print("אימות נכשל. אל תעביר את הקבצים החוצה לפני בדיקה ידנית.")
+        if summary["totals"]["verification_errors"]:
+            print(f"  [!] {summary['totals']['verification_errors']} מסמכים "
+                  f"שהאימות שלהם נכשל: לא נבדקו, לא 'עברו'.")
         print("קובצי <שם>.redacted.pdf נשמרו לצד המקור. אמת ויזואלית לפני העלאה חיצונית.")
 
 

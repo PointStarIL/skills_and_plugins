@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Extract and validate appendix references in pleading text."""
 
+import os
 import re
 from typing import List, Dict, Any, Tuple
 
@@ -181,21 +182,114 @@ def format_validation_report(validation_result: Dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-if __name__ == '__main__':
-    # Self-test
+def extract_pleading_text(path: str) -> str:
+    """
+    Read the pleading body as plain text, from either DOCX or PDF.
+
+    Detection is by magic bytes, not extension, matching Iron Rule 1 -- a DOCX
+    saved as .pdf (or the reverse) is common in the wild and must not silently
+    produce empty text, which would make every reference look missing.
+    """
+    with open(path, 'rb') as fh:
+        head = fh.read(4)
+
+    if head[:2] == b'PK':  # zip container -> DOCX
+        from docx import Document
+        doc = Document(path)
+        parts = [p.text for p in doc.paragraphs]
+        for table in doc.tables:
+            for row in table.rows:
+                for cell in row.cells:
+                    parts.extend(p.text for p in cell.paragraphs)
+        return '\n'.join(parts)
+
+    if head == b'%PDF':
+        import fitz
+        doc = fitz.open(path)
+        try:
+            return '\n'.join(page.get_text() for page in doc)
+        finally:
+            doc.close()
+
+    # Neither container: treat as plain text rather than failing, so a caller
+    # that already extracted the text can pass a .txt file.
+    with open(path, encoding='utf-8', errors='replace') as fh:
+        return fh.read()
+
+
+def _self_test() -> int:
     test_text = """
     כמפורט בנספח א' להלן.
     ראו נספח ב' לפרטים נוספים.
     המסמכים ומסומנים כנספח ג'.
     בנספח ד' מוצגת הרשימה המלאה.
     """
-    
     test_list = [
-        {'id': 'א\'', 'name': 'Document 1'},
-        {'id': 'ב\'', 'name': 'Document 2'},
-        {'id': 'ג\'', 'name': 'Document 3'},
-        {'id': 'ד\'', 'name': 'Document 4'},
+        {'id': "א'", 'name': 'Document 1'},
+        {'id': "ב'", 'name': 'Document 2'},
+        {'id': "ג'", 'name': 'Document 3'},
+        {'id': "ד'", 'name': 'Document 4'},
     ]
-    
     result = validate(test_text, test_list)
     print(format_validation_report(result))
+    return 0 if result['is_valid'] else 1
+
+
+def main(argv=None) -> int:
+    import argparse
+    import json
+    import sys
+
+    # הדוח מכיל עברית וסימני ✓/✗. קונסולת Windows מוגדרת ל-cp1255 כברירת מחדל
+    # ותקרוס עליהם, ולכן כופים UTF-8 על הפלט לפני כל הדפסה.
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding='utf-8')
+        except (AttributeError, ValueError):
+            pass
+
+    ap = argparse.ArgumentParser(
+        description="אימות הפניות צולבות לנספחים מול גוף כתב הטענות. "
+                    "קוד יציאה 0 = כל ההפניות תקינות, 1 = נמצאו שגיאות.")
+    ap.add_argument('pleading', nargs='?',
+                    help='נתיב לכתב הטענות (DOCX / PDF / TXT)')
+    ap.add_argument('--appendix-list', dest='appendix_list',
+                    help='נתיב לקובץ JSON עם [{"id": "1", "name": "..."}] '
+                         'או ה-JSON עצמו כמחרוזת')
+    ap.add_argument('--json', action='store_true',
+                    help='פלט JSON במקום דוח קריא')
+    ap.add_argument('--self-test', action='store_true',
+                    help='הרצת בדיקה עצמית על טקסט לדוגמה')
+    args = ap.parse_args(argv)
+
+    if args.self_test:
+        return _self_test()
+
+    if not args.pleading or not args.appendix_list:
+        ap.error('נדרשים גם pleading וגם --appendix-list (או --self-test)')
+
+    raw = args.appendix_list
+    if os.path.isfile(raw):
+        with open(raw, encoding='utf-8') as fh:
+            appendix_list = json.load(fh)
+    else:
+        appendix_list = json.loads(raw)
+
+    text = extract_pleading_text(args.pleading)
+    if not text.strip():
+        print('שגיאה: לא חולץ טקסט מכתב הטענות. '
+              'ייתכן שזה PDF סרוק ללא שכבת טקסט: הרץ OCR תחילה.')
+        return 2
+
+    result = validate(text, appendix_list)
+    if args.json:
+        printable = {k: v for k, v in result.items() if k != 'references'}
+        print(json.dumps(printable, ensure_ascii=False, indent=2))
+    else:
+        print(format_validation_report(result))
+    return 0 if result['is_valid'] else 1
+
+
+if __name__ == '__main__':
+    import sys
+    sys.exit(main())
