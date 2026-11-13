@@ -150,6 +150,20 @@
         "name": "Chaim Marcus",
         "email": "chaim@marcus-law.co.il"
       }
+    },
+    {
+      "name": "legal-db",
+      "source": "./plugins/legal-db",
+      "description": "Work with the Legal (ליגל) law-office case-management software from Claude: clients, cases, calendar events, documents, sub-folders and statuses, with preview, approval, automatic backup and verification.",
+      "category": "legal",
+      "tags": [
+        "legal"
+      ],
+      "author": {
+        "name": "Chaim Marcus",
+        "email": "chaim@marcus-law.co.il"      
+        "version": "1.0.0"
+      }
     }
   ]
 }
