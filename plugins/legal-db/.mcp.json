@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "legal": {
+      "command": "powershell",
+      "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "${CLAUDE_PLUGIN_ROOT}/mcp/legal-mcp.ps1"]
+    }
+  }
+}
