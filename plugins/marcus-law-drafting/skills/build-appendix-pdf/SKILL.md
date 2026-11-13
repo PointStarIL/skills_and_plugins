@@ -2,7 +2,7 @@
 name: build-appendix-pdf
 description: "מארגן, ממספר וכורך נספחים של כתבי בי-דין ל-PDF מוכן להגשה לבית המשפט: מספור עברי/ערבי, אימות הפניות צולבות מול גוף כתב הטענות, דפי כיסוי, תוכן עניינים וסימניות. ממיר DOCX ל-PDF תוך שמירת עיצוב Word (פונטים מצורפים), אוכף מרווח 1.5 בגוף ו-1.15 בטבלאות, מנקה מקף ארוך, ומתקן כיוון עמוד. הפעל כאשר: 'כרוך נספחים', 'נספחים', 'דפי כיסוי', 'אימות הפניות', 'bind appendices', 'appendix package'."
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
 ---
 
 # build-appendix-pdf
@@ -49,7 +49,8 @@ build-appendix-pdf/
 │   ├── arial.ttf, arialbd.ttf, ariali.ttf, arialbi.ttf, ariblk.ttf
 │   └── ARIALN*.TTF, ARLRDBD.TTF
 ├── references/
-│   └── patterns-extracted.md
+│   ├── patterns-extracted.md
+│   └── self-check.md         הצ'קליסט הבינארי לפני החזרת התיק
 └── scripts/
     ├── bind_pdf.py         master entrypoint (calls ensure_fonts_installed)
     ├── prepare_docx.py     1.5/1.15 line spacing + dash strip
@@ -162,3 +163,28 @@ pip install weasyprint pymupdf pypdf python-docx pillow python-bidi --break-syst
 * AI text with em dashes (sanitised before render)
 * User has both DOCX and PDF in same folder (PDF preferred)
 * Fresh Linux machine without Word fonts (auto-install from bundle)
+
+## בדיקה עצמית סופית (חובה)
+
+**אל תחזיר את התיק הכרוך לפני שהשלמת את הצעדים האלה והצגת את הטבלה.**
+
+1. הרץ את **שער 1** (`validate_references.py`) ואת **שער 2** (`pages_match`) שבסעיף
+   Workflow. קוד יציאה שאינו `0`, או `pages_match == False`, עוצרים את התהליך.
+2. קרא את `references/self-check.md` ודרג את עצמך מול כל שש השורות.
+3. **הצג את הטבלה למשתמש, לפני הקובץ.** לכל שורה `✓` או `✗` ו**ראיה מצוטטת**.
+   שורה בלי ראיה נחשבת `✗`. בדיקה שלא רצה נכתבת **"לא נבדק"**, לעולם לא `✓`.
+4. כל `✗` → תקן וחזור לצעד 1.
+5. כן או לא בלבד. אין "בערך" ואין "נראה תקין".
+
+```
+בדיקה עצמית - תיק נספחים - עת 12345-06-26.pdf
+──────────────────────────────────────────────────────────
+1. הפניות צולבות תקינות?     ✓  exit 0, 14 הפניות, 0 יתומות
+2. pages_match?               ✓  צפוי 87, בפועל 87
+3. דף שער לכל נספח?           ✓  appendix_count=9, ברשימה 9
+4. TOC תואם ל-page_map?       ✗  נספח 6: ב-TOC עמ' 54, ב-page_map עמ' 56
+5. כיוון עמודים נבדק?         ✓  preprocess_report: 3 עמודים סובבו, 0 אזהרות
+6. פונטים הותקנו?             ✓  David/Times/Arial כבר קיימים
+──────────────────────────────────────────────────────────
+תוצאה: 5/6 עברו. מתקן את 4 ומריץ שוב.
+```
