@@ -54,7 +54,7 @@ Repository זה הוא ה-marketplace הפרטי של משרד עורכי דין
 │   │   ├── agents/
 │   │   └── README.md
 │   ├── marcus-law-arnona-committee/   ועדת ערר לארנונה: ניהול תיקים + כתיבת החלטות
-│   ├── marcus-law-drafting/           ייצור מסמכים (מנוע DOCX, ניקוי, נספחים)
+│   ├── marcus-law-drafting/           ייצור מסמכים (מנוע DOCX, ניקוי, נספחים, הערות וצילומים)
 │   ├── marcus-law-content/            מצגות, מאמרים, NotebookLM
 │   ├── marcus-law-client-management/  ארגון תיקי לקוח (סיוע משפטי)
 │   ├── marcus-law-privacy/            OCR מקומי והשחרת פרטים מזהים
