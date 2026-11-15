@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>כלי ניתוח ADHD - חוזר נכות 2043</title>
+<style>
+:root{
+  --bg:#f4f6f8; --card:#ffffff; --ink:#1a2733; --muted:#5b6b7a;
+  --line:#dde4ea; --accent:#1f4e79; --accent-soft:#e8f0f7;
+  --ok:#1a7a4c; --ok-soft:#e6f4ec;
+  --warn:#8a5a00; --warn-soft:#fdf3e0;
+  --bad:#a32626; --bad-soft:#fbeaea;
+  --gap:#6b2fa0; --gap-soft:#f2ebfa;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:"Segoe UI","Arial Hebrew",Arial,sans-serif;
+  font-size:15px; line-height:1.6;
+}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 80px}
+header.top{
+  background:var(--accent); color:#fff; border-radius:10px;
+  padding:18px 22px; margin-bottom:16px;
+}
+header.top h1{margin:0 0 4px;font-size:21px;font-weight:600}
+header.top p{margin:0;font-size:13px;opacity:.9}
+.card{
+  background:var(--card); border:1px solid var(--line);
+  border-radius:10px; padding:18px 20px; margin-bottom:16px;
+}
+.card h2{
+  margin:0 0 14px; font-size:17px; color:var(--accent);
+  border-bottom:2px solid var(--accent-soft); padding-bottom:8px;
+}
+.card h3{margin:18px 0 8px;font-size:15px;color:var(--accent)}
+.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.meta label{display:block;font-size:12px;color:var(--muted);margin-bottom:3px;font-weight:600}
+input[type=text],input[type=date],textarea,select{
+  width:100%; padding:7px 9px; border:1px solid var(--line);
+  border-radius:6px; font-family:inherit; font-size:14px; background:#fff; color:var(--ink);
+}
+textarea{resize:vertical;min-height:52px;line-height:1.5}
+input:focus,textarea:focus,select:focus{outline:2px solid var(--accent);outline-offset:-1px}
+
+/* tabs */
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.tabs button{
+  background:#fff;border:1px solid var(--line);border-radius:8px;
+  padding:9px 16px;font-family:inherit;font-size:14px;cursor:pointer;color:var(--muted);font-weight:600;
+}
+.tabs button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.pane{display:none}
+.pane.on{display:block}
+
+/* scoring item */
+.item{border:1px solid var(--line);border-radius:9px;margin-bottom:12px;overflow:hidden}
+.item-head{
+  background:#f8fafc;padding:10px 14px;display:flex;gap:12px;
+  align-items:flex-start;justify-content:space-between;flex-wrap:wrap;
+  border-bottom:1px solid var(--line);
+}
+.item-title{font-weight:600;font-size:15px}
+.item-src{font-size:12px;color:var(--muted);font-weight:400;margin-top:2px}
+.chips{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.chip{
+  font-size:12px;padding:3px 10px;border-radius:20px;font-weight:600;white-space:nowrap;
+}
+.chip.mine{background:var(--accent-soft);color:var(--accent)}
+.chip.theirs{background:#eceff2;color:var(--muted)}
+.chip.delta{background:var(--gap-soft);color:var(--gap)}
+.item-body{padding:12px 14px}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:760px){.cols{grid-template-columns:1fr}}
+.col-h{font-size:12px;font-weight:700;color:var(--muted);margin-bottom:6px;
+  padding-bottom:4px;border-bottom:1px solid var(--line)}
+.col-h.mine{color:var(--accent)}
+.opt{display:flex;gap:8px;align-items:flex-start;padding:5px 6px;border-radius:6px;cursor:pointer;font-size:14px}
+.opt:hover{background:#f6f9fc}
+.opt input{margin-top:5px;flex-shrink:0;accent-color:var(--accent)}
+.opt .sc{
+  flex-shrink:0;width:20px;height:20px;border-radius:4px;background:#eceff2;
+  color:var(--muted);font-size:12px;font-weight:700;display:flex;align-items:center;
+  justify-content:center;margin-top:1px;
+}
+.opt input:checked ~ .sc{background:var(--accent);color:#fff}
+.evidence{margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
+.evidence label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px}
+.docreq{
+  margin-top:10px;font-size:12.5px;background:var(--warn-soft);color:var(--warn);
+  padding:7px 10px;border-radius:6px;border-right:3px solid var(--warn);
+}
+.item.diff{border-color:var(--gap);border-width:2px}
+.item.diff .item-head{background:var(--gap-soft)}
+
+/* totals bar */
+.totals{
+  position:sticky;bottom:0;background:#fff;border:1px solid var(--line);
+  border-radius:10px;padding:12px 18px;margin-top:16px;
+  display:flex;gap:20px;flex-wrap:wrap;align-items:center;justify-content:space-between;
+  box-shadow:0 -3px 14px rgba(0,0,0,.07);z-index:20;
+}
+.tbox{text-align:center;min-width:130px}
+.tbox .lb{font-size:11px;color:var(--muted);font-weight:600}
+.tbox .vl{font-size:24px;font-weight:700;line-height:1.2}
+.tbox .st{font-size:12px;font-weight:600;padding:2px 8px;border-radius:12px;display:inline-block;margin-top:2px}
+.st.e0{background:var(--bad-soft);color:var(--bad)}
+.st.e50{background:var(--warn-soft);color:var(--warn)}
+.st.e100{background:var(--ok-soft);color:var(--ok)}
+
+/* dsm */
+.dsm{border:1px solid var(--line);border-radius:9px;padding:6px 12px;margin-bottom:10px}
+.dsm-row{display:flex;gap:10px;align-items:flex-start;padding:7px 4px;border-bottom:1px solid #f0f3f6}
+.dsm-row:last-child{border-bottom:none}
+.dsm-row input{margin-top:6px;flex-shrink:0;width:16px;height:16px;accent-color:var(--accent)}
+.dsm-row .lt{font-weight:700;color:var(--accent);flex-shrink:0;width:16px;margin-top:1px}
+.dsm-row .tx{flex:1;font-size:14px}
+.dsm-row .q{flex-shrink:0;width:200px}
+.dsm-row .q input{width:100%;font-size:12.5px;padding:4px 7px;margin:0;height:auto}
+@media(max-width:760px){.dsm-row{flex-wrap:wrap}.dsm-row .q{width:100%}}
+.dsm-sum{
+  background:var(--accent-soft);padding:10px 14px;border-radius:8px;
+  font-weight:600;font-size:14px;margin:8px 0 16px;
+}
+.bx{border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin-bottom:9px}
+.bx-t{font-weight:600;font-size:14px;margin-bottom:5px}
+.bx-t .lt{color:var(--accent);font-weight:700}
+.tri{display:flex;gap:6px;margin:6px 0}
+.tri label{
+  flex:1;text-align:center;padding:5px;border:1px solid var(--line);border-radius:6px;
+  cursor:pointer;font-size:13px;font-weight:600;color:var(--muted);
+}
+.tri input{display:none}
+.tri input:checked + span{color:var(--accent)}
+.tri label:has(input:checked){background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+
+/* docs */
+.doc{border:1px solid var(--line);border-radius:8px;padding:11px 14px;margin-bottom:10px}
+.doc-h{display:flex;gap:10px;align-items:flex-start}
+.doc-h input{margin-top:5px;width:17px;height:17px;flex-shrink:0;accent-color:var(--accent)}
+.doc-h .dt{font-weight:600;font-size:14.5px}
+.doc-h .dd{font-size:12.5px;color:var(--muted);margin-top:3px}
+.doc.missing{background:var(--bad-soft);border-color:var(--bad)}
+.doc.have{background:var(--ok-soft);border-color:var(--ok)}
+
+/* summary */
+.gaptable{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:10px}
+.gaptable th,.gaptable td{border:1px solid var(--line);padding:7px 9px;text-align:right;vertical-align:top}
+.gaptable th{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.gaptable tr.d td{background:var(--gap-soft)}
+.gaptable td.n{text-align:center;font-weight:700;width:60px}
+.empty{color:var(--muted);font-style:italic;padding:14px 0}
+.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.btn{
+  background:var(--accent);color:#fff;border:none;border-radius:7px;padding:9px 18px;
+  font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;
+}
+.btn.sec{background:#fff;color:var(--accent);border:1px solid var(--accent)}
+.note{font-size:12.5px;color:var(--muted);background:#f8fafc;padding:9px 12px;
+  border-radius:7px;border-right:3px solid var(--line);margin-bottom:14px}
+pre.out{
+  background:#f8fafc;border:1px solid var(--line);border-radius:8px;padding:14px;
+  font-size:12.5px;white-space:pre-wrap;direction:rtl;text-align:right;max-height:420px;overflow:auto;
+  font-family:"Courier New",monospace;line-height:1.7;
+}
+@media print{
+  .tabs,.btns,.totals{display:none}
+  .pane{display:block !important}
+  body{background:#fff}
+  .card{break-inside:avoid;border-color:#999}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <h1>כלי ניתוח ADHD — חוזר נכות מס' 2043</h1>
+  <p>חוזר ילד"ן לשכה רפואית 727/06/2025 · מיום 22.06.2025 · מאשר: ד"ר מרק טרגין · מבטל כל חוזר קודם בנושא</p>
+</header>
+
+<div class="card">
+  <h2>פרטי התיק</h2>
+  <div class="meta">
+    <div><label>שם הילד</label><input type="text" id="m_name"></div>
+    <div><label>ת"ז</label><input type="text" id="m_id"></div>
+    <div><label>תאריך לידה</label><input type="date" id="m_dob"></div>
+    <div><label>גיל במועד הוועדה</label><input type="text" id="m_age"></div>
+    <div><label>מספר תיק פנימי</label><input type="text" id="m_file"></div>
+    <div><label>תאריך האבחון</label><input type="date" id="m_diag"></div>
+    <div><label>תאריך הוועדה הרפואית</label><input type="date" id="m_comm"></div>
+    <div><label>מאבחן (שם והתמחות)</label><input type="text" id="m_doc"></div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="on" data-t="p1">טבלה 1 — ניקוד</button>
+  <button data-t="p2">קריטריוני DSM5</button>
+  <button data-t="p3">מסמכים נדרשים</button>
+  <button data-t="p4">סיכום והשוואה</button>
+  <button data-t="p5">החוזר — טקסט מקור</button>
+</div>
+
+<!-- ============ TAB 1 ============ -->
+<div class="pane on" id="p1">
+  <div class="card">
+    <h2>טבלה 1: שאלון ADHD</h2>
+    <div class="note">
+      13 סעיפי ניקוד, ניקוד מרבי 31. <b>עמודה ימנית</b> = הניקוד שלנו לפי מסמכי האבחון.
+      <b>עמודה שמאלית</b> = ניקוד הוועדה הרפואית (למילוי אחרי קבלת הפרוטוקול).
+      סעיף שבו קיים פער מסומן בסגול. שדה הציטוט הוא חובה: כל ניקוד חייב להישען על ציטוט מפורש מהמסמך.
+    </div>
+    <div id="items"></div>
+  </div>
+</div>
+
+<!-- ============ TAB 2 ============ -->
+<div class="pane" id="p2">
+  <div class="card">
+    <h2>נספח 2: קריטריוני DSM5</h2>
+    <div class="note">
+      סימון הקריטריונים שמתועדים במפורש באבחון. הספירה כאן מזינה ישירות את סעיפי A1 ו-A2 בטבלה 1,
+      שהם לרוב לב המחלוקת מול הוועדה. בשדה שלצד כל קריטריון יש לרשום את מראה המקום באבחון.
+    </div>
+
+    <h3>A1 — קריטריונים להפרעה בתפקוד הקשב (inattention)</h3>
+    <div class="note">
+      נדרשים <b>6 מתוך 9</b> לילדים מתחת לגיל 17, או <b>5</b> לבני 17 ומעלה.
+      התסמינים קיימים לפחות 6 חודשים, בצורה שמפריעה לתפקוד ושאינה תואמת את השלב ההתפתחותי.
+    </div>
+    <div class="dsm" id="a1"></div>
+    <div class="dsm-sum" id="a1sum"></div>
+
+    <h3>A2 — קריטריונים לפעלתנות יתר ואימפולסיביות (hyperactivity and impulsivity)</h3>
+    <div class="note">
+      נדרשים <b>6 מתוך 9</b> לילדים עד גיל 16, או <b>5</b> לבני 17 ומעלה.
+      התסמינים קיימים לפחות 6 חודשים, בצורה שמפריעה לתפקוד ולא תואמת את השלב ההתפתחותי.
+    </div>
+    <div class="dsm" id="a2"></div>
+    <div class="dsm-sum" id="a2sum"></div>
+
+    <h3>קריטריונים B עד E</h3>
+    <div id="bce"></div>
+  </div>
+</div>
+
+<!-- ============ TAB 3 ============ -->
+<div class="pane" id="p3">
+  <div class="card">
+    <h2>נספח 1: מסמכים נדרשים לשם קביעת זכאות</h2>
+    <div class="note">
+      מסמך חסר הוא פער תיעוד: הוא לא הופך את הילד ללא זכאי, אלא מונע ניקוד בסעיף מסוים.
+      זו נקודת התקיפה המרכזית כשהוועדה ניקדה 0 בסעיף שהמסמך התומך בו כלל לא הוגש.
+    </div>
+    <div id="docs"></div>
+  </div>
+</div>
+
+<!-- ============ TAB 4 ============ -->
+<div class="pane" id="p4">
+  <div class="card">
+    <h2>סיכום והשוואה</h2>
+    <div id="summary"></div>
+    <div class="btns">
+      <button class="btn" onclick="genText()">הפק תמצית טקסט לערר</button>
+      <button class="btn sec" onclick="saveJson()">שמור נתונים (JSON)</button>
+      <button class="btn sec" onclick="document.getElementById('load').click()">טען נתונים</button>
+      <button class="btn sec" onclick="window.print()">הדפסה / PDF</button>
+      <input type="file" id="load" accept=".json" style="display:none" onchange="loadJson(event)">
+    </div>
+    <pre class="out" id="out" style="display:none"></pre>
+  </div>
+</div>
+
+<!-- ============ TAB 5 ============ -->
+<div class="pane" id="p5">
+  <div class="card">
+    <h2>החוזר — הוראות מקור</h2>
+
+    <h3>מטרות החוזר</h3>
+    <p>הורים לילדים בגילאים 91 יום ועד 18 שנים עם הפרעת קשב (ADHD) חמורה, עשויים להיות זכאים לקצבת ילד נכה.
+    עד כה, לא היה כלי מובנה לבחינת החומרה וקביעת הזכאויות נעשתה על פי שיקול דעתו של הרופא.
+    מטרת החוזר לפרט את העקרונות ואת הקריטריונים להערכת ילד עם הפרעת קשב וריכוז ולקביעת הזכאות לגמלת ילד נכה.</p>
+
+    <h3>מבוא</h3>
+    <p>אבחנת ADHD הינה פעולה מורכבת, הנעשית על ידי רופאים המוסמכים לכך בלבד. קיימת שונות רבה
+    בתסמינים ובחומרתם, בין ילדים שונים, וכן אצל אותו ילד לאורך ההתבגרות וכתגובה לטיפול הרפואי.
+    לילדים עם ADHD, ייתכן כי קיימות הפרעות נוספות, אשר חלק מהתסמינים שלהן משותפים ל-ADHD
+    (למשל ספקטרום אוטיסטי או מש"ה).</p>
+
+    <h3>עקרונות קביעת הזכאות לגמלה</h3>
+    <p>חומרת מצבו של ילד עם ADHD תקבע על סמך תפקודו והליקויים בתפקודו בכל תחומי חייו, לאורך זמן,
+    בהתחשב בנתונים סביבתיים ובתגובה לטיפולים.</p>
+
+    <h3>פרמטרים לקביעת חומרת מצבו של ילד עם ADHD</h3>
+    <p>1. חומרת התסמינים הספציפיים של ADHD.<br>
+    2. חומרת תסמיני הפרעות הנובעים מתחלואה נלווית ממנה הילד סובל.<br>
+    3. מידת הפגיעה התפקודית הכללית.<br>
+    4. מאפיינים של הסביבה אשר הילד אמור להתמודד עמה.<br>
+    5. תגובה לטיפולים התרופתיים והלא תרופתיים שהילד קיבל.</p>
+
+    <h3>אופן קביעת הזכאות לגמלת ילד"ן</h3>
+    <p>ככלל, גמלת ילד נכה תינתן לפי עילת השגחה חלקית או השגחה מלאה.
+    הרופא מתבקש למלא את טבלה מס' 1 ולסכם את הניקוד שהילד צובר. בהתאם לניקוד תיקבע הזכאות באופן הבא:</p>
+    <p>· <b>עד 9 נקודות:</b> אין זכאות.<br>
+    · <b>בין 10 ל-18 נקודות:</b> גמלה בשיעור 50% בגין השגחה חלקית.<br>
+    · <b>19 נקודות ומעלה:</b> גמלה בשיעור 100% בגין השגחה מלאה.</p>
+    <p>הטבלה שולבה בבצע דיון לילד נכה במערכת תבל.</p>
+
+    <h3>משך הזכאות</h3>
+    <p>· יש לקבוע תאריך תחילת הזכאות בהתאם למועד בו נעשה אבחון עבור הילד או בהתאם למועד הופעת
+    התסמינים המתועדים, לפי המוקדם ביניהם.<br>
+    · לילדים <b>מתחת</b> לגיל 14, תיקבע זכאות זמנית לתקופה של שנתיים מיום הוועדה.<br>
+    · לילדים בגיל 14 <b>ומעלה</b>, תיקבע זכאות צמיתה.</p>
+  </div>
+</div>
+
+</div>
+
+<div class="totals">
+  <div class="tbox">
+    <div class="lb">הניקוד שלנו</div>
+    <div class="vl" id="tm" style="color:var(--accent)">0</div>
+    <div class="st e0" id="sm">אין זכאות</div>
+  </div>
+  <div class="tbox">
+    <div class="lb">ניקוד הוועדה</div>
+    <div class="vl" id="tt" style="color:var(--muted)">—</div>
+    <div class="st e0" id="st">—</div>
+  </div>
+  <div class="tbox">
+    <div class="lb">פער</div>
+    <div class="vl" id="td" style="color:var(--gap)">—</div>
+    <div class="st" id="sd" style="background:var(--gap-soft);color:var(--gap)">— סעיפים במחלוקת</div>
+  </div>
+  <div class="tbox">
+    <div class="lb">ניקוד מרבי</div>
+    <div class="vl" style="color:var(--muted)">31</div>
+    <div class="st" style="background:#eceff2;color:var(--muted)">10 = 50% · 19 = 100%</div>
+  </div>
+</div>
+
+<script>
+/* ===================== נתוני החוזר ===================== */
+const ITEMS = [
+ {id:"A1", t:"A1 — תפקוד קשב", src:"לפי מסמכי האבחון",
+  req:"נדרש אבחון ADHD מרופא מוסמך, הכולל ציון מספר קריטריוני DSM5 וחומרתם",
+  o:[[0,"מתחת ל-6 קריטריונים"],[1,"6 קריטריונים"],[2,"7 קריטריונים"],[3,"8-9 קריטריונים"]]},
+
+ {id:"A2", t:"A2 — פעילות אימפולסיבית", src:"לפי מסמכי האבחון",
+  req:"נדרש אבחון ADHD מרופא מוסמך, הכולל ציון מספר קריטריוני DSM5 וחומרתם",
+  o:[[0,"מתחת ל-6 קריטריונים"],[1,"6 קריטריונים"],[2,"7 קריטריונים"],[3,"8-9 קריטריונים"]]},
+
+ {id:"LD", t:"לקויות למידה", src:"לפי אבחון ליקויי למידה",
+  req:"נדרש אבחון פסיכודידקטי / דידקטי המציין את חומרת הליקוי",
+  o:[[0,"תקין / אין"],[1,"קל"],[2,"בינוני"],[3,"קשה"]]},
+
+ {id:"BEH", t:"הפרעות התנהגות", src:"",
+  req:"נתמך בדו\"ח חינוכי חתום (סעיף בעיות בהתנהגות) ובאבחון",
+  o:[[0,"תקין / אין"],
+     [1,"קל: בעיות מועטות, גורמות נזק מוגבל לאחרים (למשל שקרים קטנים, מריבות עם אחים)"],
+     [2,"בינוני: מספר בעיות בינוני, חומרת נזק בינונית (למשל ונדליזם)"],
+     [3,"קשה: בעיות רבות או חמורות, נזק משמעותי לאחרים (למשל תקיפה עם נשק, התעללות בבע\"ח, פריצה)"]]},
+
+ {id:"SLP", t:"הפרעות בשינה", src:"",
+  req:"נדרש תיעוד רפואי של המלצה לטיפול תרופתי בשינה",
+  o:[[0,"תקין / אין"],[1,"שינה עם המלצה לטיפול תרופתי"]]},
+
+ {id:"SUB", t:"התמכרות לחומרים", src:"",
+  req:"נתמך בתיעוד רפואי או בדו\"ח חינוכי",
+  o:[[0,"תקין / אין"],[1,"שימוש מזדמן (עד פעם בשבוע)"],
+     [2,"שימוש קבוע (יותר מפעם בשבוע)"],[3,"שימוש יומיומי (מגביל תפקוד)"]]},
+
+ {id:"EDU", t:"מסגרת חינוכית שהומלצה", src:"לפי ועדה רב-מקצועית או ועדת זכאות ואפיון",
+  req:"נדרש טופס ועדת זכאות ואפיון של משרד החינוך, אם התקיימה ועדה",
+  o:[[0,"ללא תמיכה"],[1,"תמיכה בחינוך הרגיל (שילוב)"],
+     [2,"חינוך מיוחד (כיתה רגילה עם סייעת, כיתה / בי\"ס לחינוך מיוחד)"]]},
+
+ {id:"ACA", t:"תפקוד לימודי נוכחי", src:"לפי דוח בית הספר",
+  req:"נדרש דו\"ח חינוכי חתום ע\"י גננת / מורה / מנהל המוסד, הכולל תפקוד לימודי",
+  o:[[0,"תקין: עומד בכללים, מבצע מטלות/משימות לימודיות כנדרש, מתקדם בלימודים בקצב המצופה ממנו"],
+     [1,"פגיעה קלה: לעתים אינו עומד בכללים או לעתים אינו מבצע מטלות כנדרש או מתקדם בקצב מעט איטי מהמצופה ממנו"],
+     [2,"פגיעה בינונית: לעתים קרובות אינו עומד בכללים או לעתים קרובות אינו מבצע מטלות לימודיות כנדרש או מתקדם בקצב מאוד איטי מהמצופה ממנו"],
+     [3,"פגיעה קשה: אינו עומד בכללים או אינו מבצע מטלות לימודיות כנדרש או אינו מראה התקדמות"]]},
+
+ {id:"SOC", t:"תפקוד חברתי", src:"לפי דוח מחנך / הורה",
+  req:"נדרש דו\"ח חינוכי חתום, הכולל תפקוד חברתי",
+  o:[[0,"תקין"],
+     [1,"יש חברים במסגרת, זקוק לתיווך"],
+     [2,"אין חברים, נוטה להתבודד, לא מפרש נכון מצבים חברתיים, או מציק, מתקוטט"],
+     [3,"אין כלל חברים, לא יוצא מהבית, מנודה, מוחרם"]]},
+
+ {id:"COM", t:"מס' הפרעות נוירו-התפתחותיות ופסיכיאטריות נלוות", src:"",
+  req:"נדרש תיעוד תחלואה נלווית באבחון או במכתב רפואי",
+  o:[[0,"אין"],[1,"1"],[2,"2"],[3,"3 ומעלה"]]},
+
+ {id:"MED", t:"טיפול תרופתי שהומלץ", src:"גם אם לא ניתן או הופסק עקב תופעות לוואי או התווית נגד (מתועד במכתב רפואי)",
+  req:"נדרש מכתב רפואי המתעד את ההמלצה, ואת הסיבה להפסקה אם הופסק",
+  o:[[0,"לא הומלץ"],[1,"הומלץ על טיפול יומי"],
+     [2,"לא מאוזן למרות טיפול יומי"],[2,"הומלץ על טיפול פעמיים ביום"]]},
+
+ {id:"FUP", t:"מעקב רפואי מקצועי מתועד לפחות אחת לחצי שנה", src:"",
+  req:"נדרשים סיכומי ביקור רפואיים בתדירות של לפחות אחת לחצי שנה",
+  o:[[0,"לא"],[1,"כן"]]},
+
+ {id:"TRT", t:"טיפולים מתועדים, מחוץ למסגרת החינוכית, בחצי שנה האחרונה", src:"",
+  req:"נדרש תיעוד טיפולים ממקצועות הבריאות מחוץ למסגרת החינוכית",
+  o:[[0,"לא"],[1,"כן"]]}
+];
+
+const A1 = [
+ ["א","לעיתים קרובות לא שם לב לפרטים או מבצע שגיאות טיפשיות (בבית הספר, במקום העבודה או בפעילויות אחרות)."],
+ ["ב","לעיתים קרובות מתקשה בהחזקת קשב לאורך זמן."],
+ ["ג","לעיתים קרובות נראה שלא מקשיב כאשר מדברים אליו ישירות."],
+ ["ד","לעיתים קרובות מתקשה לעקוב אחרי הוראות, נוטה \"להימרח\" במטלות."],
+ ["ה","לעיתים קרובות מתקשה בסדר ובארגון."],
+ ["ו","לעיתים קרובות נמנע, לא אוהב, או מסרב לעשות מטלות שדורשות מאמץ מנטלי מתמשך (למשל שיעורי בית)."],
+ ["ז","לעיתים קרובות מאבד דברים שהכרחיים לביצוע משימות או פעילויות (חומר לבית הספר, ספרים, ארנקים, טלפונים סלולריים, מפתחות, משקפיים ועוד)."],
+ ["ח","לעיתים קרובות דעתו מוסחת בקלות."],
+ ["ט","לעיתים קרובות נוטה לשכחנות בפעילויות יומיומיות."]
+];
+
+const A2 = [
+ ["א","לעיתים קרובות יושב בחוסר מנוחה, מרבה להזיז את ידיו ואת רגליו."],
+ ["ב","לעיתים קרובות קם מהכיסא בכיתה או במקום העבודה, במצבים שבהם מצופה ממנו להישאר יושב."],
+ ["ג","לעיתים קרובות מתרוצץ או מטפס בסיטואציות לא מתאימות (אצל מתבגרים או מבוגרים הדבר עשוי להתבטא רק בתחושת חוסר מנוחה)."],
+ ["ד","לעיתים קרובות לא מסוגל לשחק או להשתתף בפעילויות בצורה שקטה (מייצר רעש רב בסביבה)."],
+ ["ה","לעיתים קרובות מתנהג כאילו הוא \"מונע על ידי מנוע\"."],
+ ["ו","לעיתים קרובות מדבר בלי הפסקה."],
+ ["ז","לעיתים קרובות פולט תשובה לפני סיום השאלה."],
+ ["ח","לעיתים קרובות מתקשה לחכות לתורו."],
+ ["ט","לעיתים קרובות קוטע אנשים או מציק להם (למשל, מתפרץ לתוך שיחות או לתוך משחקים)."]
+];
+
+const BCE = [
+ ["B","חלק מהתסמינים של חוסר קשב ו/או של פעילות יתר ואימפולסיביות הופיעו לפני גיל 12."],
+ ["C","חלק מהתסמינים מופיעים בשתי מסגרות לפחות (כמו בית, גן ילדים/בית ספר, עבודה, עם חברים או קרובים)."],
+ ["D","קיימת עדות ברורה כי התסמינים גורמים לפגיעה תפקודית."],
+ ["E","התסמינים לא ניתנים להסבר טוב יותר על ידי הפרעה פסיכיאטרית אחרת (כגון הפרעה במצב הרוח, הפרעת חרדה, הפרעת אישיות)."]
+];
+
+const DOCS = [
+ ["d1","אבחון ADHD","מבוצע ע\"י מומחה בפסיכיאטריה של הילד והמתבגר, מומחה בנוירולוגיה והתפתחות הילד, או רופא ילדים / משפחה שמורשה ע\"י משרד הבריאות לאבחן ADHD. יכלול לפחות: אבחנה על סמך קריטריוני DSM5 עם ציון מספר הקריטריונים לאבחנה וחומרתם; תחלואה נלווית; מאפייני הסביבה (משפחה, מסגרת לימודים); טיפול בהווה ובעבר, תרופתי ושאינו תרופתי (מקצועות הבריאות)."],
+ ["d2","טופס ועדת זכאות ואפיון של משרד החינוך","אם התקיימה ועדה."],
+ ["d3","דו\"ח חינוכי","חתום ע\"י גננת / מורה / מנהל המוסד, הכולל: תפקוד לימודי, תפקוד חברתי, בעיות בהתנהגות."],
+ ["d4","אבחון פסיכולוגי","אם נעשה."],
+ ["d5","אבחון ממוחשב של הפרעת קשב","אם נעשה."]
+];
+
+/* ===================== מצב ===================== */
+const S = {mine:{}, theirs:{}, ev:{}, a1:{}, a2:{}, a1q:{}, a2q:{}, bce:{}, bceq:{}, docs:{}, docn:{}};
+
+const el=(id)=>document.getElementById(id);
+const esc=(s)=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const elig=(n)=> n<=9 ? {c:"e0",  t:"אין זכאות"}
+              : n<=18? {c:"e50", t:"50% — השגחה חלקית"}
+                     : {c:"e100",t:"100% — השגחה מלאה"};
+
+/* ===================== בניית טבלה 1 ===================== */
+function buildItems(){
+  el("items").innerHTML = ITEMS.map(it=>{
+    const opts=(side)=>it.o.map(([sc,lb],i)=>`
+      <label class="opt">
+        <input type="radio" name="${side}_${it.id}" value="${i}"
+               onchange="setScore('${side}','${it.id}',${sc},${i})">
+        <span class="sc">${sc}</span><span>${esc(lb)}</span>
+      </label>`).join("");
+    return `
+    <div class="item" id="it_${it.id}">
+      <div class="item-head">
+        <div>
+          <div class="item-title">${esc(it.t)}</div>
+          ${it.src?`<div class="item-src">${esc(it.src)}</div>`:""}
+        </div>
+        <div class="chips">
+          <span class="chip mine" id="ch_m_${it.id}">שלנו: —</span>
+          <span class="chip theirs" id="ch_t_${it.id}">ועדה: —</span>
+          <span class="chip delta" id="ch_d_${it.id}" style="display:none"></span>
+        </div>
+      </div>
+      <div class="item-body">
+        <div class="cols">
+          <div><div class="col-h mine">הניקוד שלנו — לפי מסמכי האבחון</div>${opts("mine")}</div>
+          <div><div class="col-h">ניקוד הוועדה הרפואית</div>${opts("theirs")}</div>
+        </div>
+        <div class="evidence">
+          <label>ציטוט מקור מהאבחון (מסמך, עמוד, ציטוט מדויק) — חובה לביסוס הניקוד</label>
+          <textarea id="ev_${it.id}" oninput="S.ev['${it.id}']=this.value;render()"
+            placeholder="לדוגמה: אבחון פסיכודידקטי מיום 12.3.2025, עמ' 4: &quot;...&quot;"></textarea>
+          <div class="docreq">מסמך תומך נדרש: ${esc(it.req)}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function setScore(side,id,sc,idx){
+  S[side][id]={sc:sc,idx:idx};
+  render();
+}
+
+/* ===================== DSM5 ===================== */
+function buildDsm(){
+  const row=(pfx,arr)=>arr.map(([lt,tx],i)=>`
+    <div class="dsm-row">
+      <input type="checkbox" id="${pfx}_${i}" onchange="S.${pfx}[${i}]=this.checked;render()">
+      <span class="lt">${lt}.</span>
+      <span class="tx">${esc(tx)}</span>
+      <span class="q"><input type="text" placeholder="מראה מקום באבחון"
+        oninput="S.${pfx}q[${i}]=this.value" id="${pfx}q_${i}"></span>
+    </div>`).join("");
+  el("a1").innerHTML=row("a1",A1);
+  el("a2").innerHTML=row("a2",A2);
+  el("bce").innerHTML=BCE.map(([lt,tx],i)=>`
+    <div class="bx">
+      <div class="bx-t"><span class="lt">${lt} —</span> ${esc(tx)}</div>
+      <div class="tri">
+        <label><input type="radio" name="bce_${i}" value="yes" onchange="S.bce[${i}]='yes';render()"><span>מתקיים</span></label>
+        <label><input type="radio" name="bce_${i}" value="no" onchange="S.bce[${i}]='no';render()"><span>לא מתקיים</span></label>
+        <label><input type="radio" name="bce_${i}" value="na" onchange="S.bce[${i}]='na';render()"><span>לא נבדק / לא מתועד</span></label>
+      </div>
+      <input type="text" placeholder="מראה מקום או הערה" id="bceq_${i}" oninput="S.bceq[${i}]=this.value">
+    </div>`).join("");
+}
+
+function buildDocs(){
+  el("docs").innerHTML=DOCS.map(([id,t,d])=>`
+    <div class="doc" id="doc_${id}">
+      <div class="doc-h">
+        <input type="checkbox" id="dc_${id}" onchange="S.docs['${id}']=this.checked;render()">
+        <div><div class="dt">${esc(t)}</div><div class="dd">${esc(d)}</div></div>
+      </div>
+      <input type="text" style="margin-top:8px" placeholder="שם הקובץ / תאריך / הערה על החוסר"
+        id="dn_${id}" oninput="S.docn['${id}']=this.value">
+    </div>`).join("");
+}
+
+/* ===================== חישוב ורנדור ===================== */
+function totals(){
+  let m=0,t=0,hasT=false;
+  ITEMS.forEach(it=>{
+    if(S.mine[it.id])   m+=S.mine[it.id].sc;
+    if(S.theirs[it.id]){t+=S.theirs[it.id].sc; hasT=true;}
+  });
+  return {m:m,t:t,hasT:hasT};
+}
+
+function dsmCount(k){ return Object.values(S[k]).filter(Boolean).length; }
+
+function render(){
+  // chips + diff highlight
+  let diffs=[];
+  ITEMS.forEach(it=>{
+    const m=S.mine[it.id], t=S.theirs[it.id];
+    el("ch_m_"+it.id).textContent = "שלנו: " + (m? m.sc : "—");
+    el("ch_t_"+it.id).textContent = "ועדה: " + (t? t.sc : "—");
+    const d=el("ch_d_"+it.id), box=el("it_"+it.id);
+    if(m&&t&&m.sc!==t.sc){
+      const g=m.sc-t.sc;
+      d.style.display=""; d.textContent="פער "+(g>0?"+":"")+g;
+      box.classList.add("diff");
+      diffs.push({id:it.id,t:it.t,m:m,t2:t,g:g});
+    } else { d.style.display="none"; box.classList.remove("diff"); }
+  });
+
+  const T=totals();
+  el("tm").textContent=T.m;
+  const em=elig(T.m); el("sm").className="st "+em.c; el("sm").textContent=em.t;
+
+  if(T.hasT){
+    el("tt").textContent=T.t;
+    const et=elig(T.t); el("st").className="st "+et.c; el("st").textContent=et.t;
+    const g=T.m-T.t;
+    el("td").textContent=(g>0?"+":"")+g;
+    el("sd").textContent=diffs.length+" סעיפים במחלוקת";
+  } else {
+    el("tt").textContent="—"; el("st").className="st e0"; el("st").textContent="—";
+    el("td").textContent="—"; el("sd").textContent="— סעיפים במחלוקת";
+  }
+
+  // DSM sums
+  const c1=dsmCount("a1"), c2=dsmCount("a2");
+  const band=(c)=> c<6?0 : c===6?1 : c===7?2 : 3;
+  el("a1sum").textContent = `סומנו ${c1} מתוך 9 קריטריוני A1 · ניקוד תואם בטבלה 1: ${band(c1)}`
+    + (c1<6 ? " · מתחת לסף האבחנה לילדים מתחת לגיל 17 (לבני 17 ומעלה נדרשים 5)" : "");
+  el("a2sum").textContent = `סומנו ${c2} מתוך 9 קריטריוני A2 · ניקוד תואם בטבלה 1: ${band(c2)}`
+    + (c2<6 ? " · מתחת לסף האבחנה לילדים עד גיל 16 (לבני 17 ומעלה נדרשים 5)" : "");
+
+  // docs styling
+  DOCS.forEach(([id])=>{
+    const b=el("doc_"+id);
+    b.classList.toggle("have",  !!S.docs[id]);
+    b.classList.toggle("missing", S.docs[id]===false);
+  });
+
+  renderSummary(diffs,T,c1,c2);
+}
+
+function renderSummary(diffs,T,c1,c2){
+  const em=elig(T.m), et=elig(T.t);
+  let h="";
+
+  h+=`<h3>ניקוד וזכאות</h3>
+  <table class="gaptable">
+   <tr><th>&nbsp;</th><th>סך הניקוד</th><th>מסקנת זכאות לפי החוזר</th></tr>
+   <tr><td><b>הניקוד שלנו</b></td><td class="n">${T.m}</td><td>${em.t}</td></tr>
+   <tr><td><b>ניקוד הוועדה</b></td><td class="n">${T.hasT?T.t:"—"}</td><td>${T.hasT?et.t:"—"}</td></tr>
+   <tr class="${T.hasT&&T.m!==T.t?"d":""}"><td><b>פער</b></td>
+       <td class="n">${T.hasT?((T.m-T.t>0?"+":"")+(T.m-T.t)):"—"}</td>
+       <td>${T.hasT?(em.t===et.t?"אין שינוי בעילת הזכאות":"שינוי בעילת הזכאות: "+et.t+" ← "+em.t):"—"}</td></tr>
+  </table>`;
+
+  h+=`<h3>סעיפים במחלוקת</h3>`;
+  if(!diffs.length){
+    h+=`<div class="empty">אין פערים. יש למלא את שתי העמודות בטבלה 1 כדי לייצר השוואה.</div>`;
+  } else {
+    h+=`<table class="gaptable">
+     <tr><th>סעיף</th><th>שלנו</th><th>ועדה</th><th>פער</th><th>הניקוד שנטען, וציטוט המקור</th></tr>`;
+    diffs.forEach(d=>{
+      const lbM=ITEMS.find(x=>x.id===d.id).o[d.m.idx][1];
+      const ev=S.ev[d.id]||"";
+      h+=`<tr class="d"><td>${esc(d.t)}</td><td class="n">${d.m.sc}</td><td class="n">${d.t2.sc}</td>
+          <td class="n">${d.g>0?"+":""}${d.g}</td>
+          <td>${esc(lbM)}${ev?"<br><i>"+esc(ev)+"</i>":'<br><span style="color:var(--bad)">חסר ציטוט מקור</span>'}</td></tr>`;
+    });
+    h+=`</table>`;
+  }
+
+  h+=`<h3>קריטריוני DSM5</h3>
+  <table class="gaptable">
+   <tr><th>קבוצה</th><th>סומנו</th><th>סף האבחנה</th><th>ניקוד תואם בטבלה 1</th></tr>
+   <tr><td>A1 — תפקוד קשב</td><td class="n">${c1}/9</td><td>6 (מתחת לגיל 17) · 5 (17+)</td>
+       <td class="n">${c1<6?0:c1===6?1:c1===7?2:3}</td></tr>
+   <tr><td>A2 — פעלתנות יתר ואימפולסיביות</td><td class="n">${c2}/9</td><td>6 (עד גיל 16) · 5 (17+)</td>
+       <td class="n">${c2<6?0:c2===6?1:c2===7?2:3}</td></tr>
+  </table>`;
+
+  const bceOut=BCE.map(([lt,tx],i)=>{
+    const v=S.bce[i]; if(!v) return null;
+    return `<tr class="${v==='no'||v==='na'?'d':''}"><td class="n">${lt}</td>
+      <td>${esc(tx.slice(0,70))}...</td>
+      <td>${v==='yes'?'מתקיים':v==='no'?'לא מתקיים':'לא נבדק / לא מתועד'}</td></tr>`;
+  }).filter(Boolean).join("");
+  if(bceOut) h+=`<table class="gaptable" style="margin-top:8px">
+    <tr><th>קריטריון</th><th>תוכן</th><th>ממצא</th></tr>${bceOut}</table>`;
+
+  const missing=DOCS.filter(([id])=>!S.docs[id]);
+  h+=`<h3>פערי תיעוד לפי נספח 1</h3>`;
+  if(!missing.length){ h+=`<div class="empty">כל המסמכים סומנו כקיימים.</div>`; }
+  else{
+    h+=`<table class="gaptable"><tr><th>מסמך חסר או לא סומן</th><th>הסעיפים בטבלה 1 שנפגעים מהחוסר</th></tr>`;
+    const map={d1:"A1, A2, תחלואה נלווית, טיפול תרופתי",d2:"מסגרת חינוכית שהומלצה",
+      d3:"תפקוד לימודי נוכחי, תפקוד חברתי, הפרעות התנהגות",d4:"תחלואה נלווית, תפקוד חברתי",
+      d5:"A1, A2 (תומך, לא מחליף אבחון קליני)"};
+    missing.forEach(([id,t])=>{
+      h+=`<tr class="d"><td>${esc(t)}${S.docn[id]?" — "+esc(S.docn[id]):""}</td><td>${map[id]}</td></tr>`;
+    });
+    h+=`</table>`;
+  }
+
+  const noEv=ITEMS.filter(it=>S.mine[it.id]&&S.mine[it.id].sc>0&&!(S.ev[it.id]||"").trim());
+  if(noEv.length){
+    h+=`<h3>סעיפים ללא ציטוט מקור</h3><div class="note" style="border-right-color:var(--bad);color:var(--bad)">
+      ${noEv.map(i=>esc(i.t)).join(" · ")} — יש להשלים ציטוט לפני הגשת הערר.</div>`;
+  }
+
+  el("summary").innerHTML=h;
+}
+
+/* ===================== ייצוא ===================== */
+function genText(){
+  const T=totals(), em=elig(T.m), et=elig(T.t);
+  const nm=el("m_name").value||"__________";
+  let s=`ניתוח לפי חוזר נכות מס' 2043 (חוזר ילד נכה 727/06/2025 מיום 22.06.2025)\n`;
+  s+=`ילד: ${nm}   ת"ז: ${el("m_id").value||"______"}   תיק: ${el("m_file").value||"______"}\n`;
+  s+=`תאריך האבחון: ${el("m_diag").value||"______"}   תאריך הוועדה: ${el("m_comm").value||"______"}\n`;
+  s+=`\n${"=".repeat(66)}\nניקוד טבלה 1\n${"=".repeat(66)}\n\n`;
+  ITEMS.forEach(it=>{
+    const m=S.mine[it.id], t=S.theirs[it.id];
+    s+=`${it.t}\n`;
+    s+=`   הניקוד הנטען: ${m?m.sc:"—"}${m?"  ("+it.o[m.idx][1]+")":""}\n`;
+    s+=`   ניקוד הוועדה: ${t?t.sc:"—"}${t?"  ("+it.o[t.idx][1]+")":""}\n`;
+    if(m&&t&&m.sc!==t.sc) s+=`   >>> פער של ${m.sc-t.sc} נקודות\n`;
+    if(S.ev[it.id]) s+=`   מקור: ${S.ev[it.id]}\n`;
+    s+=`\n`;
+  });
+  s+=`${"=".repeat(66)}\nסיכום\n${"=".repeat(66)}\n`;
+  s+=`סך הניקוד הנטען: ${T.m} מתוך 31  →  ${em.t}\n`;
+  s+=`סך ניקוד הוועדה: ${T.hasT?T.t:"—"} מתוך 31  →  ${T.hasT?et.t:"—"}\n`;
+  if(T.hasT) s+=`הפער: ${(T.m-T.t>0?"+":"")+(T.m-T.t)} נקודות\n`;
+  s+=`\nספי הזכאות לפי החוזר: עד 9 נקודות אין זכאות · 10 עד 18 גמלה בשיעור 50% בגין השגחה חלקית · 19 ומעלה גמלה בשיעור 100% בגין השגחה מלאה.\n`;
+  const c1=dsmCount("a1"),c2=dsmCount("a2");
+  s+=`\nקריטריוני DSM5: A1 — ${c1} מתוך 9 · A2 — ${c2} מתוך 9.\n`;
+  const missing=DOCS.filter(([id])=>!S.docs[id]).map(([,t])=>t);
+  if(missing.length) s+=`\nמסמכים שלא סומנו כקיימים: ${missing.join(" · ")}\n`;
+  const o=el("out"); o.style.display="block"; o.textContent=s;
+  navigator.clipboard&&navigator.clipboard.writeText(s);
+  o.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+
+function collect(){
+  const meta={};
+  ["m_name","m_id","m_dob","m_age","m_file","m_diag","m_comm","m_doc"].forEach(k=>meta[k]=el(k).value);
+  return {v:1,circular:"2043",meta:meta,state:S};
+}
+function saveJson(){
+  const b=new Blob([JSON.stringify(collect(),null,2)],{type:"application/json"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(b);
+  a.download="ADHD_"+((el("m_name").value||"תיק").replace(/\s+/g,"_"))+".json";
+  a.click();
+}
+function loadJson(e){
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const d=JSON.parse(r.result);
+      Object.keys(d.meta||{}).forEach(k=>{ if(el(k)) el(k).value=d.meta[k]; });
+      Object.keys(S).forEach(k=>{ S[k]=(d.state&&d.state[k])||{}; });
+      // restore UI
+      ITEMS.forEach(it=>{
+        ["mine","theirs"].forEach(side=>{
+          const v=S[side][it.id];
+          if(v){ const r=document.querySelector(`input[name="${side}_${it.id}"][value="${v.idx}"]`); if(r) r.checked=true; }
+        });
+        if(S.ev[it.id]) el("ev_"+it.id).value=S.ev[it.id];
+      });
+      [["a1",A1],["a2",A2]].forEach(([k,arr])=>arr.forEach((_,i)=>{
+        if(S[k][i]) el(k+"_"+i).checked=true;
+        if(S[k+"q"][i]) el(k+"q_"+i).value=S[k+"q"][i];
+      }));
+      BCE.forEach((_,i)=>{
+        if(S.bce[i]){const r=document.querySelector(`input[name="bce_${i}"][value="${S.bce[i]}"]`); if(r) r.checked=true;}
+        if(S.bceq[i]) el("bceq_"+i).value=S.bceq[i];
+      });
+      DOCS.forEach(([id])=>{
+        if(S.docs[id]) el("dc_"+id).checked=true;
+        if(S.docn[id]) el("dn_"+id).value=S.docn[id];
+      });
+      render();
+    }catch(err){ alert("קובץ לא תקין: "+err.message); }
+  };
+  r.readAsText(f);
+}
+
+/* ===================== אתחול ===================== */
+document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll(".tabs button").forEach(x=>x.classList.remove("on"));
+  document.querySelectorAll(".pane").forEach(x=>x.classList.remove("on"));
+  b.classList.add("on"); el(b.dataset.t).classList.add("on");
+  window.scrollTo({top:0,behavior:"smooth"});
+});
+buildItems(); buildDsm(); buildDocs(); render();
+</script>
+</body>
+</html>

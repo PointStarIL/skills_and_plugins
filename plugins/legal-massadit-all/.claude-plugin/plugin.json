@@ -1,0 +1,18 @@
+{
+  "name": "legal-massadit-all",
+  "displayName": "Legal-Massadit-All",
+  "version": "1.0.3",
+  "license": "MIT",
+  "icon": "./.claude-plugin/icon.png",
+  "description": "Work with the Legal (ליגל) law-office case-management software from Claude: clients, cases, calendar events, documents, sub-folders and statuses, with preview, approval, automatic backup and verification. One-file variant: includes the Legal-Connector extension package.",
+  "author": {
+    "name": "Legal-Massadit"
+  },
+  "keywords": [
+    "legal",
+    "case-management",
+    "law-office",
+    "windows"
+  ],
+  "mcpServers": "./servers/Legal-Connector.mcpb"
+}
