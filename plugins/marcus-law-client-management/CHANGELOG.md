@@ -8,6 +8,17 @@
 
 ---
 
+## [1.3.0] - 2026-11-15
+
+### נוסף
+- `direct-access-report` (1.0.0): הסקיל עבר מסקיל חשבון (claude.ai) לחבילה. נוסף `metadata.version`.
+- `analyze-adhd-diagnosis` (1.0.0): הסקיל עבר מסקיל חשבון (claude.ai) לחבילה. נוסף `metadata.version`.
+- `klear-document-drafting` (1.0.0): הסקיל עבר מסקיל חשבון (claude.ai) לחבילה. נוסף `metadata.version`.
+
+### שונה
+- `klear-document-drafting`: ה-`description` נכתב מחדש בגוף שלישי עם מה הסקיל עושה, לפי כללי ה-repo. מילות ההפעלה נשמרו.
+- `plugin.json`, `marketplace.json`: התיאור וספירת הסקיילים עודכנו.
+
 ## [1.2.1] - 2026-11-15
 
 ### שונה

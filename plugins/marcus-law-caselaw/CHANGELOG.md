@@ -8,6 +8,17 @@
 
 ---
 
+## [1.2.0] - 2026-11-15
+
+### נוסף
+- `search-nevo-citations` (1.0.0): הסקיל עבר מסקיל חשבון (claude.ai) לחבילה. נוסף `metadata.version`.
+- `cite-from-vault` (1.0.0): הסקיל עבר מסקיל חשבון (claude.ai) לחבילה. נוסף `metadata.version`.
+- `caselaw-review-panel` (1.0.0): הסקיל עבר מסקיל חשבון (claude.ai) לחבילה. נוסף `metadata.version`.
+
+### שונה
+- `cite-from-vault`: ה-`description` נוסף מתי להפעיל, לפי כללי ה-repo. מילות ההפעלה נשמרו.
+- `plugin.json`, `marketplace.json`: התיאור וספירת הסקיילים עודכנו.
+
 ## [1.1.0] - 2026-09-08
 
 ### תוקן

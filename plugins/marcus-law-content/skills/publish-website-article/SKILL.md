@@ -1,6 +1,8 @@
 ---
-name: "publish-website-article"
+name: publish-website-article
 description: "מנהל את כל תהליך המאמר לאתר marcus-law.co.il, מבחירת המקור והניסוח ועד העלאה ל-Drive, מעקב אחרי סדנת n8n ואימות באתר החי. הפעל כאשר: 'מאמר לאתר ותפרסם', 'תפרסם מאמר', 'תעלה מאמר לאתר', 'מאמר מפסק דין מהמסד'."
+metadata:
+  version: "1.0.0"
 ---
 
 # פרסום מאמר באתר marcus-law.co.il, מקצה לקצה
