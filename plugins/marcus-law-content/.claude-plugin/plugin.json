@@ -1,7 +1,7 @@
 {
   "name": "marcus-law-content",
-  "version": "1.0.1",
-  "description": "חבילת תוכן: מצגות משפטיות בעברית, כתיבת מאמרים, ואינטגרציה עם NotebookLM. כוללת 3 סקיילים.",
+  "version": "1.1.0",
+  "description": "חבילת תוכן: מצגות משפטיות בעברית, כתיבת מאמרים ופרסומם באתר, ואינטגרציה עם NotebookLM. כוללת 4 סקיילים.",
   "author": {
     "name": "Chaim Marcus",
     "email": "chaim@marcus-law.co.il"

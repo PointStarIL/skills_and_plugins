@@ -1,6 +1,8 @@
 ---
 name: nevo-question-distiller
-description: "Distills precise legal research questions for Nevo AI (נבו) from Israeli case documents. Reads 100% of the case file (every page counted by a script, no partial read), asks the lawyer a few targeted questions, maps the legal issues, and writes each question in two wordings (one for the lawyer, one for Nevo) that follow Nevo's own phrasing rules and the parameters of the Nevo connector in Claude. Stops at a list of questions the lawyer approved; it does not search Nevo and does not answer the questions. Use when a lawyer says: 'שאלות לנבו', 'תזקק לי שאלות משפטיות', 'מה לשאול את נבו', 'לפני מחקר בנבו', 'נסח שאלות מחקר', 'research questions for Nevo'."
+description: "מזקק שאלות מחקר משפטי מדויקות לנבו (Nevo AI) מתוך מסמכי תיק: קורא 100% מהתיק (כל עמוד נספר בסקריפט, בלי קריאה חלקית), שואל את עורך הדין כמה שאלות ממוקדות, ממפה את הסוגיות המשפטיות, וכותב כל שאלה בשני ניסוחים, אחד לעורך הדין ואחד לנבו, לפי כללי הניסוח של נבו והפרמטרים של קונקטור נבו ב-Claude. נעצר ברשימת שאלות שעורך הדין אישר; אינו מחפש בנבו ואינו עונה על השאלות. הפעל כאשר: 'שאלות לנבו', 'תזקק לי שאלות משפטיות', 'מה לשאול את נבו', 'לפני מחקר בנבו', 'נסח שאלות מחקר', 'research questions for Nevo'."
+metadata:
+  version: "1.0.0"
 ---
 
 # מזקק השאלות לנבו

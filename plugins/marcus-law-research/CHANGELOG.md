@@ -8,6 +8,16 @@
 
 ---
 
+## [1.1.0] - 2026-11-15
+
+### נוסף
+- `legal-research` (1.0.0): הסקיל עבר מסקיל חשבון (claude.ai) לחבילה. נוסף `metadata.version`.
+- `nevo-question-distiller` (1.0.0): הסקיל עבר מסקיל חשבון (claude.ai) לחבילה. נוסף `metadata.version`.
+
+### שונה
+- `nevo-question-distiller`: ה-`description` תורגם לעברית, לפי כללי ה-repo. מילות ההפעלה נשמרו.
+- `plugin.json`, `marketplace.json`: התיאור וספירת הסקיילים עודכנו.
+
 ## [1.0.1] - 2026-10-14
 
 ### שונה
