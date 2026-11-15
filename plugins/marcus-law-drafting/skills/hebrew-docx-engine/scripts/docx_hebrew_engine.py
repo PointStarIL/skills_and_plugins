@@ -47,7 +47,6 @@ from docx import Document
 from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
 from docx.shared import Cm
-from docx.enum.table import WD_TABLE_ALIGNMENT
 
 
 # Inline bold markers: wrap a span in BOLD_OPEN..BOLD_CLOSE and it renders bold.
@@ -301,9 +300,14 @@ def _insert_ordered(parent, child, order):
 
 
 def _set_cell_rtl(cell, text, bold=False):
-    """Write text into a single cell with correct RTL direction (paragraph + run)."""
+    """Write text into a single cell with correct RTL direction (paragraph + run).
+
+    הפסקה בתא היא בסגנון "סעיף" בלי מספור (numId=0), כמו כל גוף המסמך.
+    """
     p = cell.paragraphs[0]
     p.clear()  # drop any existing runs; NOT p.text="" which leaves an empty run
+    p.style = p.part.document.styles[STYLE_BODY]
+    set_numbering(p, 0, ilvl=0)  # סגנון "סעיף" בלי מספר
     _insert_ordered(p._p.get_or_add_pPr(), OxmlElement('w:bidi'), _PPR_ORDER)
     # אין לקבוע כאן w:jc. ראה "עקרון היישור בתאי טבלה" בראש הקובץ.
     if bold:
@@ -312,25 +316,71 @@ def _set_cell_rtl(cell, text, bold=False):
         add_formatted_text(p, text)
 
 
+def _twips(length):
+    return int(round(length / 635))  # EMU -> twips
+
+
+def clause_text_indent(doc):
+    """קו הטקסט של פסקאות "סעיף" ברמה 0, ב-twips: ערך w:left של רמה 0 במספור
+    שהסגנון מפנה אליו. נלקח מהתבנית ולא מוערך. 0 אם לא נמצא."""
+    numbering = doc.part.numbering_part.element
+    for num in numbering.findall(qn('w:num')):
+        if num.get(qn('w:numId')) == str(CLAUSE_NUMID):
+            abs_id = num.find(qn('w:abstractNumId')).get(qn('w:val'))
+            for an in numbering.findall(qn('w:abstractNum')):
+                if an.get(qn('w:abstractNumId')) == abs_id:
+                    for lvl in an.findall(qn('w:lvl')):
+                        if lvl.get(qn('w:ilvl')) == '0':
+                            ind = lvl.find(qn('w:pPr') + '/' + qn('w:ind'))
+                            if ind is not None:
+                                v = ind.get(qn('w:left')) or ind.get(qn('w:start'))
+                                if v:
+                                    return int(v)
+    return 0
+
+
+def _text_width(doc):
+    sec = doc.sections[-1]
+    return _twips(sec.page_width) - _twips(sec.left_margin) - _twips(sec.right_margin)
+
+
+def _set_tbl_prop(tblPr, tag, attrs):
+    el = tblPr.find(qn('w:' + tag))
+    if el is None:
+        el = OxmlElement('w:' + tag)
+        _insert_ordered(tblPr, el, _TBLPR_ORDER)
+    for k, v in attrs.items():
+        el.set(qn('w:' + k), str(v))
+    return el
+
+
 def add_table(doc, headers, rows, widths=None, header_bold=True, style='Table Grid'):
-    """Add an RTL table to the document.
+    """Add an RTL table to the document, aligned to the clause text line.
 
     headers      : list of column-header strings.
     rows         : list of rows, each a list of cell strings.
     widths       : optional column widths in cm. The first entry is the
-                   right-most column (columns run right-to-left).
+                   right-most column (columns run right-to-left). The widths
+                   are treated as proportions: the table always spans exactly
+                   from the clause text line to the left margin.
     header_bold  : whether the header row is bold.
     style        : table style (default: grid lines).
+
+    יישור: הטבלה מוזחת לקו הטקסט של פסקאות "סעיף" (tblInd = w:left של רמה 0),
+    ורוחבה הוא רוחב השורה פחות ההזחה, כך שאינה "בורחת" מהשוליים. הרוחבים
+    נכתבים גם ב-tblGrid וגם ב-tcW, כדי שלא תהיינה שתי הגדרות סותרות.
 
     Returns the table object for further tweaks.
     """
     n = len(headers)
     t = doc.add_table(rows=1, cols=n)
     t.style = style
-    t.alignment = WD_TABLE_ALIGNMENT.RIGHT
     t.autofit = False                                                 # emits tblLayout=fixed
     tblPr = t._tbl.tblPr
     _insert_ordered(tblPr, OxmlElement('w:bidiVisual'), _TBLPR_ORDER)  # RTL column order
+    jc = tblPr.find(qn('w:jc'))
+    if jc is not None:                                                # tblInd חל רק בלי jc
+        tblPr.remove(jc)
 
     for i, h in enumerate(headers):
         _set_cell_rtl(t.rows[0].cells[i], h, bold=header_bold)
@@ -339,10 +389,27 @@ def add_table(doc, headers, rows, widths=None, header_bold=True, style='Table Gr
         for i, val in enumerate(row):
             _set_cell_rtl(cells[i], str(val))
 
-    if widths:
-        for r in t.rows:
-            for i, w in enumerate(widths):
-                r.cells[i].width = Cm(w)
+    indent = clause_text_indent(doc)
+    avail = _text_width(doc) - indent
+    weights = [float(w) for w in widths] if widths else [1.0] * n
+    total = sum(weights)
+    cols = [int(avail * w / total) for w in weights]
+    cols[-1] += avail - sum(cols)                                     # סכום מדויק
+
+    _set_tbl_prop(tblPr, 'tblW', {'w': avail, 'type': 'dxa'})
+    _set_tbl_prop(tblPr, 'tblInd', {'w': indent, 'type': 'dxa'})
+    grid = t._tbl.tblGrid
+    for gc, w in zip(grid.findall(qn('w:gridCol')), cols):
+        gc.set(qn('w:w'), str(w))
+    for r in t.rows:
+        for c, w in zip(r.cells, cols):
+            tcPr = c._tc.get_or_add_tcPr()
+            tcW = tcPr.find(qn('w:tcW'))
+            if tcW is None:
+                tcW = OxmlElement('w:tcW')
+                tcPr.insert(0, tcW)
+            tcW.set(qn('w:w'), str(w))
+            tcW.set(qn('w:type'), 'dxa')
     return t
 
 
