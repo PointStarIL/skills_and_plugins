@@ -1,0 +1,29 @@
+{
+  "manifest_version": "0.3",
+  "name": "legal-db",
+  "display_name": "Legal DB",
+  "version": "__VERSION__",
+  "description": "Work with the Legal (ליגל) law-office case-management software from Claude: look up clients and cases, and add events, documents, sub-folders and statuses with a preview and explicit approval before every change.",
+  "long_description": "A local extension for Windows that connects Claude to the Legal case-management software through its database and document folders. Restricted tools only (no general shell): legal_read (look things up), legal_preview (dry-run of a change, returns a one-time token), legal_apply (writes exactly the previewed change), and legal_setup_status / legal_setup_apply for the first-time setup, which runs by itself in the chat on first use. Every write is backed up automatically and verified. Unofficial: not made or supported by the Legal vendor.",
+  "author": { "name": "Legal DB tools" },
+  "license": "MIT",
+  "icon": "icon.png",
+  "keywords": ["legal", "case-management", "law-office", "windows"],
+  "server": {
+    "type": "binary",
+    "entry_point": "mcp/legal-mcp.ps1",
+    "mcp_config": {
+      "command": "powershell",
+      "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "${__dirname}/mcp/legal-mcp.ps1"],
+      "env": {}
+    }
+  },
+  "tools": [
+    { "name": "legal_read", "description": "Read-only: find clients and cases, show a case with its documents and events, list statuses, event kinds and stages." },
+    { "name": "legal_preview", "description": "Dry-run of a change in Legal (open a case, add an event or document, rename, move, delete, change status). Writes nothing; returns what would be written and a one-time confirmation token." },
+    { "name": "legal_apply", "description": "Writes exactly the change that legal_preview showed, identified by its token. Use only after the user explicitly approved the preview." },
+    { "name": "legal_setup_status", "description": "Shows whether the first-time setup was completed, the work mode and the Legal folder." },
+    { "name": "legal_setup_apply", "description": "Saves the settings the user chose in the chat (first-time setup or a later change): mode, Legal folder, user name, VAT, event location, backups." }
+  ],
+  "compatibility": { "platforms": ["win32"] }
+}

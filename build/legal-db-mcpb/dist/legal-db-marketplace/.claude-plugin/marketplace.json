@@ -1,0 +1,15 @@
+{
+  "name": "legal-db-marketplace",
+  "description": "Local marketplace with the Legal DB plugin: work with the Legal (ליגל) case-management software from Claude.",
+  "owner": {
+    "name": "Legal DB tools"
+  },
+  "plugins": [
+    {
+      "name": "legal-db",
+      "source": "./plugins/legal-db",
+      "description": "Work with the Legal (ליגל) law-office case-management software from Claude: clients, cases, calendar events, documents, sub-folders and statuses, with preview, approval, automatic backup and verification.",
+      "version": "1.0.0"
+    }
+  ]
+}
