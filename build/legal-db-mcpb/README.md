@@ -24,4 +24,14 @@
 2. הוסף אליה את `manifest.json` ואת `icon.png` מכאן, והחלף את `__VERSION__` בגרסה.
 3. ארוז עם `mcpb pack` (או zip ושנה סיומת ל-`.mcpb`).
 
-קובצי הבנייה (`dist/`) אינם נשמרים ב-git.
+## `dist/` — תוצרי הבנייה של גרסה 1.0.0
+
+תמונת מצב של מה שנבנה והופץ בפועל, כפי שהיה ב-`plugins/legal/dist/` על ה-NAS. נשמר כארכיון.
+**לא לערוך כאן.** הקוד שבתוכם זהה ל-`plugins/legal-db` (נבדק ב-15.11.26).
+
+| קובץ | מה זה |
+|---|---|
+| `legal-db-1.0.0.mcpb` | התוסף ל-Claude Desktop, מוכן להתקנה בלחיצה כפולה. |
+| `legal-db-mcpb/` | אותה חבילה, פרוסה. ה-`manifest.json` שבה הוא התבנית עם `version: "1.0.0"`. |
+| `legal-db-1.0.0.zip` | הפלאג-אין לבדו, ארוז. |
+| `legal-db-marketplace/` + `legal-db-marketplace-1.0.0.zip` | marketplace מקומי עצמאי עם הפלאג-אין. כולל את `icon.png` ואת השדה `icon` ב-`plugin.json`, שהוסרו מאז מ-`plugins/legal-db`. |
