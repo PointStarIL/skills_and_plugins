@@ -8,6 +8,11 @@
 
 ---
 
+## [1.4.1] - 2026-11-22
+
+### תוקן
+- `organize-appeal-folder` (1.1.1): בפרק "מפתח Mistral (Infisical)" עודכן שם המודל הנוכחי מ-`mistral-ocr-4-0` ל-`mistral-ocr-latest`, בהתאם לברירת המחדל בסקריפט `ocr_with_fallback.py`.
+
 ## [1.4.0] - 2026-11-16
 
 ### נוסף

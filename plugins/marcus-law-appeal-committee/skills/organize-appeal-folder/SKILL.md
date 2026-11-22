@@ -2,7 +2,7 @@
 name: organize-appeal-folder
 description: "מארגן אוטומטית תיקיית ערר (היטל השבחה / רישוי): מזהה סוגי מסמכים, מבצע OCR למסמכים סרוקים (Tesseract עברית עם נפילה ל-Mistral OCR), מטמיע שכבת טקסט בקובצי ה-PDF כך שניתן לחפש בהם, משנה שמות לפי תוכן, יוצר תתי-תיקיות, מחלץ נספחים מכתבי טענות, מפצל PDF, מייצא קובצי טקסט/MD טהורים, ומפיק מסמך סיכום. הפעל כאשר: יש תיקייה עם קובצי PDF של ערר לארגן/למיין, או קבצים בשמות לא ברורים (scan001.pdf); 'ארגן תיק ערר', 'סדר לי את תיק הערר', 'organize appeal folder'. עובד מ-5 ועד 50+ קבצים. לתיק לקוח מהסיוע המשפטי ראה organize-client-folder. שים לב: ה-OCR נופל ל-Mistral בענן כשהאיכות המקומית נמוכה; לתיק רגיש ראה local-ocr-folder."
 metadata:
-  version: "1.1.0"
+  version: "1.1.1"
 ---
 
 # Appeal Case Organizer, ארגון תיקי ערר
@@ -87,7 +87,7 @@ python3 "${CLAUDE_PLUGIN_ROOT}/skills/organize-appeal-folder/scripts/ocr_with_fa
 
 הסקריפט מדפיס ל-stderr באיזה מנוע נעשה שימוש (`tesseract` או `mistral`) ומדוע נפל. השתמש בטקסט שמתקבל לסיווג, לחילוץ התאריך ולזיהוי הנספחים.
 
-**מפתח Mistral (Infisical):** הסקריפט קורא את מפתח ה-API ושם המודל ממשתני סביבה. הסודות שמורים ב-Infisical תחת פרויקט `2c462576-b125-4279-b0ec-7220dbf51ccf`, סביבה `main`, נתיב `/services/mistral` (מפתחות `API_KEY` ו-`OCR_MODEL`, כרגע `mistral-ocr-4-0`). הרצה עם הזרקת הסודות בזמן ריצה דרך Infisical CLI:
+**מפתח Mistral (Infisical):** הסקריפט קורא את מפתח ה-API ושם המודל ממשתני סביבה. הסודות שמורים ב-Infisical תחת פרויקט `2c462576-b125-4279-b0ec-7220dbf51ccf`, סביבה `main`, נתיב `/services/mistral` (מפתחות `API_KEY` ו-`OCR_MODEL`, כרגע `mistral-ocr-latest`). הרצה עם הזרקת הסודות בזמן ריצה דרך Infisical CLI:
 
 ```bash
 infisical run --projectId=2c462576-b125-4279-b0ec-7220dbf51ccf --env=main --path=/services/mistral -- \
